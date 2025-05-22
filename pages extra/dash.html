@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Vendas</title>
+    <link rel="stylesheet" href="styles5.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Biblioteca de gráficos -->
+    <script src="script.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <!-- Menu lateral -->
+    <aside class="sidebar">
+     
+        <ul>
+            <li><li><a href="../pages/listagem.html"><span class="material-icons-outlined">home</span> Início</a></li></li>
+            <li><a href="#"><span class="material-icons-outlined">dashboard</span> Dashboard</a></li>
+            <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
+            <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <main class="content">
+        <div class="filters">
+            <h2>Dashboard de Vendas</h2>
+        </div>
+        <br>
+        <!-- Barra superior -->
+        <header class="topbar">
+            <div class="title-search">
+               
+            </div>
+            <label>Período:</label>
+            <input type="date" id="start-date">
+            <input type="date" id="end-date">
+
+            <label>Vendedor:</label>
+            <select id="filter-seller">
+                <option value="">Todos</option>
+                <option value="João">João</option>
+                <option value="Maria">Maria</option>
+                <option value="Carlos">Carlos</option>
+            </select>
+
+            <button onclick="atualizarDashboard()">Filtrar</button>
+        </header>
+
+        <!-- Filtros -->
+   
+
+        <!-- Painel de indicadores -->
+        <div class="dashboard-metrics">
+            <div class="metric-card">
+                <span class="material-icons-outlined">shopping_cart</span>
+                <div>
+                    <h3 id="total-vendas">0</h3>
+                    <p>Total de Vendas</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="material-icons-outlined">check_circle</span>
+                <div>
+                    <h3 id="vendas-aprovadas">0</h3>
+                    <p>Pedidos Aprovados</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="material-icons-outlined">hourglass_empty</span>
+                <div>
+                    <h3 id="vendas-pendentes">0</h3>
+                    <p>Pedidos Pendentes</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="material-icons-outlined">cancel</span>
+                <div>
+                    <h3 id="vendas-canceladas">0</h3>
+                    <p>Pedidos Cancelados</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-container">
+            <div class="chart-box">
+                <canvas id="vendasPorMes"></canvas>
+            </div>
+            <div class="chart-box">
+                <canvas id="statusVendas"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-box">
+                <canvas id="produtosMaisVendidos"></canvas>
+            </div>
+            <div class="chart-box">
+                <canvas id="servicosMaisUtilizados"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function atualizarDashboard() {
+            // Simula atualização de dados com filtro
+            console.log("Atualizando dados...");
+        }
+
+        // Dados fictícios
+        const dadosVendas = {
+            total: 120,
+            aprovadas: 80,
+            pendentes: 25,
+            canceladas: 15
+        };
+
+        document.getElementById("total-vendas").textContent = dadosVendas.total;
+        document.getElementById("vendas-aprovadas").textContent = dadosVendas.aprovadas;
+        document.getElementById("vendas-pendentes").textContent = dadosVendas.pendentes;
+        document.getElementById("vendas-canceladas").textContent = dadosVendas.canceladas;
+
+        // Gráficos
+        new Chart(document.getElementById("vendasPorMes"), {
+            type: "bar",
+            data: {
+                labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+                datasets: [{
+                    label: "Vendas por Mês",
+                    data: [10, 15, 20, 25, 30, 35, 40, 50, 45, 40, 35, 30],
+                    backgroundColor: "rgba(11, 61, 145, 0.7)",
+                    borderColor: "rgba(11, 61, 145, 1)",
+                    borderWidth: 1
+                }]
+            }
+        });
+
+        new Chart(document.getElementById("statusVendas"), {
+            type: "doughnut",
+            data: {
+                labels: ["Aprovadas", "Pendentes", "Canceladas"],
+                datasets: [{
+                    data: [dadosVendas.aprovadas, dadosVendas.pendentes, dadosVendas.canceladas],
+                    backgroundColor: ["#4CAF50", "#FFC107", "#F44336"]
+                }]
+            }
+        });
+
+        new Chart(document.getElementById("produtosMaisVendidos"), {
+            type: "bar",
+            data: {
+                labels: ["Smartphone", "Notebook", "Tablet", "TV", "Fone de Ouvido"],
+                datasets: [{
+                    label: "Quantidade Vendida",
+                    data: [40, 30, 25, 20, 15],
+                    backgroundColor: "rgba(33, 150, 243, 0.7)"
+                }]
+            }
+        });
+
+        new Chart(document.getElementById("servicosMaisUtilizados"), {
+            type: "bar",
+            data: {
+                labels: ["Manutenção", "Instalação", "Suporte Técnico", "Consultoria"],
+                datasets: [{
+                    label: "Número de Serviços",
+                    data: [50, 35, 30, 25],
+                    backgroundColor: "rgba(76, 175, 80, 0.7)"
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

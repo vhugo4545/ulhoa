@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abas com Tabelas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            background: #ddd;
+            padding: 10px;
+        }
+        .tab {
+            padding: 10px;
+            margin-right: 5px;
+            background: #bbb;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background: #888;
+            font-weight: bold;
+        }
+        .content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        .content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="tab1">Aba 1</div>
+        <div class="tab" data-tab="tab2">Aba 2</div>
+        <div class="tab" data-tab="tab3">Aba 3</div>
+    </div>
+
+    <div id="tab1" class="content active">
+        <h2>Tabela 1</h2>
+        <table>
+            <tr><th>Nome</th><th>Idade</th></tr>
+            <tr><td>Ana</td><td>25</td></tr>
+            <tr><td>Bruno</td><td>30</td></tr>
+        </table>
+    </div>
+    
+    <div id="tab2" class="content">
+        <h2>Tabela 2</h2>
+        <table>
+            <tr><th>Produto</th><th>Preço</th></tr>
+            <tr><td>Notebook</td><td>R$ 3500</td></tr>
+            <tr><td>Smartphone</td><td>R$ 2500</td></tr>
+        </table>
+    </div>
+    
+    <div id="tab3" class="content">
+        <h2>Tabela 3</h2>
+        <table>
+            <tr><th>Cidade</th><th>País</th></tr>
+            <tr><td>São Paulo</td><td>Brasil</td></tr>
+            <tr><td>Lisboa</td><td>Portugal</td></tr>
+        </table>
+    </div>
+
+    <script>
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

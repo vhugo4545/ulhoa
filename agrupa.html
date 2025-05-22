@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nova Página</title>
+
+  <!-- Estilos -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style4.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="agrupa.js" defer></script>
+  <script src="agrupaServer.js" defer></script>
+  
+  <style>
+    .copy-icon {
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 0.9rem;
+    color: #007bff;
+  }
+
+  .copy-icon:hover {
+    color: #0056b3;
+  }
+    body {
+      padding-bottom: 80px;
+    }
+
+    .valor-destaque {
+      padding: 12px 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.04);
+      display: inline-block;
+    }
+
+    .totais-fixos {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #ffffff;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+      padding: 10px 20px;
+      display: none;
+      z-index: 1000;
+    }
+
+    .sidebar {
+      width: 240px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: #343a40;
+      color: white;
+      padding: 20px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar ul li a {
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      text-decoration: none;
+    }
+
+    .sidebar-footer {
+      margin-top: 40px;
+    }
+
+    .sidebar-button {
+      width: 100%;
+      background-color: #495057;
+      color: white;
+      border: none;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .search-container {
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .search-container input {
+      flex: 1;
+      padding: 8px;
+    }
+
+    .grupo-controles {
+      margin-bottom: 20px;
+    }
+
+    .table-container {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Menu lateral -->
+  <aside class="sidebar">
+    <ul>
+      <li><a href="../pages/listagem.html"><span class="material-icons-outlined">home</span> Início</a></li>
+      <li><a href="#"><span class="material-icons-outlined">folder</span> Meus Arquivos</a></li>
+      <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
+      <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button onclick="salvarProdutoModelo()" id="save-proposal" class="sidebar-button">
+        <span class="material-icons-outlined">save</span> Salvar Produto Base
+      </button>
+    </div>
+    
+  </aside>
+
+  <!-- Conteúdo principal -->
+  <main class="content">
+   <!-- Link para os ícones do Google -->
+
+<style>
+  .copy-icon {
+    cursor: pointer;
+    font-size: 16px;
+    color: #aaa;
+    vertical-align: middle;
+    margin-left: 4px;
+    transition: color 0.2s;
+    user-select: none;
+  }
+
+  .copy-icon:hover {
+    color: #555;
+  }
+</style>
+<!-- Link para os ícones Material Symbols (coloque no <head> se ainda não tiver) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+  <style>
+    #popup-info {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      max-height: 80vh;
+      overflow: hidden;
+      z-index: 9999;
+      width: 600px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      background: white;
+      border-radius: 8px;
+    }
+  
+    .popup-content {
+      padding: 20px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+  
+    .popup-info .form-group {
+      margin-bottom: 16px;
+    }
+  
+    .percent-result {
+      font-size: 0.85em;
+      color: #444;
+      margin-top: 4px;
+    }
+  
+    .popup-footer {
+      padding: 10px 20px;
+      background: #f8f9fa;
+      text-align: right;
+      position: sticky;
+      bottom: 0;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+  
+  <div id="popup-info" class="popup-info" data-group-id="" style="display: none;">
+    <div class="popup-content">
+      <h3 id="popup-title">Informações Adicionais</h3>
+      <div class="popup-grid">
+  
+        <!-- Campo de custo total como base de cálculo -->
+        <input type="hidden" id="custo_total_base" value="1000" />
+  
+        <!-- === INFORMAÇÕES ADICIONAIS === -->
+        <div class="form-group full-width" style="grid-column: span 2;">
+          <strong>📌 Informações</strong><hr>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_miudezas">% Miudezas
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('miudezas')">content_copy</span>
+          </label>
+          <input type="text" id="popup_miudezas" data-tag="miudezas" class="percentual-campo">
+          <div class="percent-result" data-for="popup_miudezas">💰 Valor: R$ 0,00</div>
+        </div>
+  
+        <!-- Exemplo com cálculo percentual -->
+        <div class="form-group">
+          <label for="popup_gasto_operacional">% Gasto Operacional
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('gasto_operacional')">content_copy</span>
+          </label>
+          <input type="text" id="popup_gasto_operacional" data-tag="gasto_operacional" class="percentual-campo">
+          <div class="percent-result" data-for="popup_gasto_operacional">💰 Valor: R$ 0,00</div>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_impostos">% Impostos
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('impostos')">content_copy</span>
+          </label>
+          <input type="text" id="popup_impostos" data-tag="impostos" class="percentual-campo">
+          <div class="percent-result" data-for="popup_impostos">💰 Valor: R$ 0,00</div>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_margem_lucro">% Margem de Lucro
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('margem_lucro')">content_copy</span>
+          </label>
+          <input type="text" id="popup_margem_lucro" data-tag="margem_lucro" class="percentual-campo">
+          <div class="percent-result" data-for="popup_margem_lucro">💰 Valor: R$ 0,00</div>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_margem_seguranca">% Margem de Segurança
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('margem_seguranca')">content_copy</span>
+          </label>
+          <input type="text" id="popup_margem_seguranca" data-tag="margem_seguranca" class="percentual-campo">
+          <div class="percent-result" data-for="popup_margem_seguranca">💰 Valor: R$ 0,00</div>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_comissao_arquiteta">% Comissão Arquiteta
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('comissao_arquiteta')">content_copy</span>
+          </label>
+          <input type="text" id="popup_comissao_arquiteta" data-tag="comissao_arquiteta" class="percentual-campo">
+          <div class="percent-result" data-for="popup_comissao_arquiteta">💰 Valor: R$ 0,00</div>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_margem_negociacao">Margem de Negociação (R$)
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('margem_negociacao')">content_copy</span>
+          </label>
+          <input type="text" id="popup_margem_negociacao" data-tag="margem_negociacao">
+        </div>
+  
+        <!-- === CAMPOS LIVRES === -->
+        <div class="form-group full-width" style="grid-column: span 2;">
+          <strong>📐 Parâmetros Técnicos</strong><hr>
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_altura_montante">Altura Montante
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('altura_montante')">content_copy</span>
+          </label>
+          <input type="text" id="popup_altura_montante" data-tag="altura_montante">
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_numero_montantes">Número de Montantes
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('numero_montantes')">content_copy</span>
+          </label>
+          <input type="text" id="popup_numero_montantes" data-tag="numero_montantes">
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_numero_protecoes">Número de Proteções
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('numero_protecoes')">content_copy</span>
+          </label>
+          <input type="text" id="popup_numero_protecoes" data-tag="numero_protecoes">
+        </div>
+  
+        <!-- === VALORES CALCULADOS === -->
+        <div class="form-group full-width" style="grid-column: span 2;">
+          <strong>💰 Cálculos Automáticos</strong><hr>
+        </div>
+  
+      </div>
+  
+      <!-- Descrição -->
+      <div class="form-group full-width">
+        <label for="popup_descricao">Unidade
+          <span class="material-symbols-outlined copy-icon" onclick="copiarTag('descricao')">content_copy</span>
+        </label>
+   <input type="text" id="popup_descricao" data-tag="descricao" placeholder="Digite a descrição..." />
+ </div>
+    </div>
+  
+    <div class="popup-footer">
+      <button onclick="fecharPopup()" class="btn btn-secondary">Fechar</button>
+    </div>
+  </div>
+  
+  <script>
+    function atualizarValoresPercentuais() {
+      const groupId = document.getElementById("popup-info").dataset.groupId;
+      const custoTotal = getCustoTotal(groupId);
+  
+      console.log(`🔍 [${groupId}] #custo_total =`, custoTotal);
+  
+      document.querySelectorAll('.percentual-campo').forEach(input => {
+        const id = input.id;
+        const valorPercentual = parseFloat(input.value.replace(',', '.'));
+        const resultDiv = document.querySelector(`.percent-result[data-for="${id}"]`);
+  
+        if (!isNaN(valorPercentual) && resultDiv && custoTotal != null) {
+          const valorReal = custoTotal * (valorPercentual / 100);
+          resultDiv.textContent = `💰 Valor: R$ ${valorReal.toFixed(2)}`;
+        } else if (resultDiv) {
+          resultDiv.textContent = `💰 Valor: R$ 0,00`;
+        }
+      });
+    }
+  
+    function getCustoTotal(groupId) {
+      try {
+        // Encontra a linha total correspondente ao grupo
+        const container = document.querySelector(`#included-products-container [data-group="${groupId}"]`);
+        if (!container) {
+          console.warn(`❌ Container de grupo '${groupId}' não encontrado.`);
+          return 0;
+        }
+  
+        const totalRow = container.querySelector('tr.total-row');
+        if (!totalRow) {
+          console.warn(`❌ Linha total-row não encontrada no grupo '${groupId}'.`);
+          return 0;
+        }
+  
+        const valorTd = totalRow.querySelectorAll('td')[1];
+        if (!valorTd) {
+          console.warn(`❌ Célula de custo total não encontrada na segunda coluna.`);
+          return 0;
+        }
+  
+        const texto = valorTd.textContent.replace(/[^0-9,\.]/g, '').replace(',', '.');
+        const valor = parseFloat(texto);
+  
+        console.log(`📊 Valor bruto extraído do DOM para grupo "${groupId}":`, texto, '→', valor);
+        return isNaN(valor) ? 0 : valor;
+      } catch (e) {
+        console.warn("⚠️ Erro ao extrair #custo_total do DOM:", e);
+        return 0;
+      }
+    }
+  
+    // Atualiza ao digitar
+    document.addEventListener('input', function (e) {
+      if (e.target.classList.contains('percentual-campo')) {
+        atualizarValoresPercentuais();
+      }
+    });
+  
+    // Atualiza ao abrir popup
+    document.addEventListener('DOMContentLoaded', atualizarValoresPercentuais);
+  </script>
+  
+  
+  
+
+
+  
+    
+<script>
+  function copiarTag(idCampo) {
+  const textoCopiar = `#${idCampo}`;
+  navigator.clipboard.writeText(textoCopiar).then(() => {
+    console.log(`✅ Copiado: ${textoCopiar}`);
+  }).catch(err => {
+    console.error('❌ Erro ao copiar: ', err);
+  });
+}
+
+</script>    
+    <!-- Barra superior -->
+    <header class="topbar">
+      <h2>Compor Produto</h2>
+      <img src="logo-redonda.png" alt="Logo" class="logo-round" height="50">
+    </header>
+
+<!-- Popup dinâmico -->
+
+
+    <!-- Formulário -->
+    <div class="container my-4">
+  
+     
+       
+    
+    </div>
+
+
+ 
+<!-- Área da tabela e barra fixa continuam abaixo... -->
+
+<!-- Container de busca centralizado -->
+<div class="search-container d-flex justify-content-center align-items-center gap-3 mb-4">
+  <span class="material-icons-outlined">search</span>
+  <input type="text" id="product-search" class="form-control" placeholder="Pesquisar produtos..." >
+
+  <!-- Botão com dropdown de classes -->
+  <div class="dropdown">
+    <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownClassesBtn" data-bs-toggle="dropdown" aria-expanded="false">
+     Produto Acabado
+    </button>
+    <ul class="dropdown-menu" id="dropdownClassesList" aria-labelledby="dropdownClassesBtn">
+      <!-- itens dinâmicos serão adicionados aqui -->
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- Grupo de Controle -->
+<div id="grupo-controles" class="grupo-controles">
+  <h4>Exibir Grupos:</h4>
+  <div id="grupo-checkboxes"></div>
+</div>
+
+<!-- Tabelas -->
+<div class="table-container">
+  <h3>Produtos Disponíveis</h3>
+  <table id="search-results" class="table">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Custo</th>
+        <th>Preço</th>
+        <th>Codigo Omie</th>
+        <th>Detalhes</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Resultados da pesquisa -->
+    </tbody>
+  </table>
+</div>
+
+<div class="table-container">
+  <h3>Produtos Selecionados</h3>
+  <table id="included-products" class="table">
+    <tbody>
+      <!-- Produtos selecionados -->
+    </tbody>
+  </table>
+  <!-- Container dinâmico para produtos renderizados por grupo -->
+  <div id="included-products-container"></div>
+</div>
+
+<!-- Barra Fixa de Totais -->
+<div id="barraTotais" class="totais-fixos text-center">
+  <div class="row justify-content-center">
+    <div class="col-auto">
+      <div class="valor-destaque text-success fs-6" id="valor-final-custo">Custo Final: R$ 0,00</div>
+    </div>
+    <div class="col-auto">
+      <div class="valor-destaque text-primary fs-6" id="valor-final-venda">Venda Final: R$ 0,00</div>
+    </div>
+  </div>
+</div>
+
+
+
+
+</body>
+</html>

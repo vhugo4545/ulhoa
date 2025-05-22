@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Texto</title>
+    <link rel="stylesheet" href="styles3.css">
+    <script src="editor.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <!-- Menu lateral -->
+    <aside class="sidebar">
+      
+        <ul>
+            <li><li><a href="../pages/listagem.html"><span class="material-icons-outlined">home</span> Início</a></li></li>
+            <li><a href="#"><span class="material-icons-outlined">edit</span> Editor</a></li>
+            <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
+            <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <main class="content">
+        <header class="topbar">
+         <br> <br>
+            <div class="toolbar">
+                <button onclick="formatText('bold')"><span class="material-icons-outlined">format_bold</span></button>
+                <button onclick="formatText('italic')"><span class="material-icons-outlined">format_italic</span></button>
+                <button onclick="formatText('underline')"><span class="material-icons-outlined">format_underlined</span></button>
+                <button onclick="alignText('Left')"><span class="material-icons-outlined">format_align_left</span></button>
+                <button onclick="alignText('Center')"><span class="material-icons-outlined">format_align_center</span></button>
+                <button onclick="alignText('Right')"><span class="material-icons-outlined">format_align_right</span></button>
+                <button onclick="increaseFontSize()"><span class="material-icons-outlined">text_increase</span></button>
+                <button onclick="decreaseFontSize()"><span class="material-icons-outlined">text_decrease</span></button>
+                <button onclick="removeFormatting()"><span class="material-icons-outlined">format_clear</span></button>
+                
+                <!-- Botão para criar lista com pontos -->
+                <button onclick="toggleBulletList()"><span class="material-icons-outlined">format_list_bulleted</span></button>
+                <div>  <button id="save-text">Salvar como HTML</button></div>
+                <!-- Select de Modelos -->
+                <select id="template-select">
+                    <option value="">Escolha um modelo</option>
+                    <option value="minuta-meyer">Minuta Meyer</option>
+                    <option value="contrato">Contrato</option>
+                    <option value="aditivo">Aditivo</option>
+                    <option value="termo-acordo">Termo de Acordo</option>
+                    <option value="parecer-juridico">Parecer Jurídico</option>
+                </select>
+               
+              
+            </div>
+            
+        </header>
+        
+
+        <div class="editor-wrapper">
+            <!-- Área do editor de texto -->
+            <div class="editor-container">
+                <div id="editor" contenteditable="true" placeholder="Digite seu texto aqui..."></div>
+            </div>
+
+            <!-- Área das Variáveis -->
+            <div class="text-snippets">
+                <h3>Variáveis Disponíveis</h3>
+                <div class="pill" onclick="insertVariable('Nome')">Nome</div>
+                <div class="pill" onclick="insertVariable('Telefone')">Telefone</div>
+                <div class="pill" onclick="insertVariable('Email')">Email</div>
+                <div class="pill" onclick="insertVariable('Endereço')">Endereço</div>
+                <div class="pill" onclick="insertVariable('Cidade')">Cidade</div>
+                <div class="pill" onclick="insertVariable('Estado')">Estado</div>
+                <div class="pill" onclick="insertVariable('Data de Nascimento')">Data de Nascimento</div>
+            </div>
+        </div>
+
+        <!-- Botões de Controle -->
+        <div class="editor-buttons">
+         
+        </div>
+    </main>
+</body>
+</html>

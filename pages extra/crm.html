@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        /* Reset e Fonte */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Corpo */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #0b3d91;
+        }
+
+        /* Kanban Container */
+        .kanban-container {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        /* Barra de Títulos */
+        .kanban-header {
+            display: flex;
+            gap: 20px;
+            width: calc(10 * 250px);
+            min-width: 1300px;
+            margin-bottom: 10px;
+        }
+
+        .kanban-header .header-column {
+            flex: 0 0 240px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #0b3d91;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .filter-icon {
+            cursor: pointer;
+        }
+
+        /* Kanban Board */
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            width: calc(10 * 250px);
+            min-width: 1300px;
+        }
+
+        /* Colunas do Kanban */
+        .kanban-column {
+            flex: 0 0 240px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Área onde os cartões são soltos */
+        .kanban-cards {
+            flex: 1;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 5px;
+            overflow-y: auto;
+            max-height: 60vh; /* Definindo altura máxima para ativar scroll */
+        }
+
+        /* Adicionando barra de rolagem */
+        .kanban-cards::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .kanban-cards::-webkit-scrollbar-track {
+            background: #ddd;
+            border-radius: 5px;
+        }
+
+        .kanban-cards::-webkit-scrollbar-thumb {
+            background: #0b3d91;
+            border-radius: 5px;
+        }
+
+        /* Cartões do Kanban */
+        .kanban-card {
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: grab;
+            font-size: 14px;
+            border-left: 5px solid #0b3d91;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .tag {
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .on-time {
+            background: green;
+        }
+
+        .delayed {
+            background: red;
+        }
+
+        /* Botão Adicionar */
+        .add-card {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            background: #0b3d91;
+            color: white;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .add-card:hover {
+            background: #092a6b;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Kanban Board</h1>
+
+    <div class="kanban-container">
+        <!-- Barra de Títulos -->
+        <div class="kanban-header">
+            <!-- Criado dinamicamente no JavaScript -->
+        </div>
+
+        <!-- Área Principal do Kanban -->
+        <div class="kanban-board">
+            <!-- Criado dinamicamente no JavaScript -->
+        </div>
+
+ 
+</div>
+
+    </div>
+
+    <script>
+        const columnTitles = [
+            "Backlog", "Planejamento", "Design", "Desenvolvimento", "Testes",
+            "Deploy", "Produção", "Ajustes", "Finalização", "Concluído"
+        ];
+
+        const header = document.querySelector(".kanban-header");
+        const board = document.querySelector(".kanban-board");
+
+        columnTitles.forEach((title, index) => {
+            // Criando os títulos acima das colunas
+            let headerColumn = document.createElement("div");
+            headerColumn.classList.add("header-column");
+            headerColumn.innerHTML = `
+                <span>${title}</span>
+                <span class="material-icons filter-icon">filter_list</span>
+            `;
+            header.appendChild(headerColumn);
+
+            // Criando as colunas abaixo
+            let column = document.createElement("div");
+            column.classList.add("kanban-column");
+            column.innerHTML = `
+                <div class="kanban-cards" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                ${index === 0 ? '<button class="add-card" onclick="addCard()">+ Adicionar Tarefa</button>' : ''}
+            `;
+            board.appendChild(column);
+        });
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            let cardId = event.dataTransfer.getData("text");
+            let card = document.getElementById(cardId);
+            event.target.appendChild(card);
+        }
+
+        function addCard() {
+            let cliente = prompt("Nome do Cliente:");
+            let valor = parseFloat(prompt("Valor da Proposta: R$")).toFixed(2);
+            if (!cliente || isNaN(valor)) return;
+
+            let isDelayed = confirm("A proposta está atrasada?");
+            
+            let card = document.createElement("div");
+            card.classList.add("kanban-card");
+            card.setAttribute("id", "card-" + Date.now());
+            card.setAttribute("draggable", "true");
+            card.setAttribute("ondragstart", "drag(event)");
+
+            let tagClass = isDelayed ? "delayed" : "on-time";
+            let tagText = isDelayed ? "Atrasado" : "No Prazo";
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span>${cliente}</span>
+                    <span class="tag ${tagClass}">${tagText}</span>
+                </div>
+                <p>💰 R$ ${valor}</p>
+            `;
+
+            document.querySelector(".kanban-column .kanban-cards").appendChild(card);
+        }
+
+        // Gerar cards aleatórios em algumas colunas para testar a rolagem
+        for (let i = 0; i < 200; i++) {
+            let randomColumn = Math.floor(Math.random() * columnTitles.length);
+            let cardText = `Cliente ${i + 1}`;
+            let randomValue = (Math.random() * 9500 + 500).toFixed(2);
+            let isDelayed = Math.random() > 0.5;
+            addCardToColumn(randomColumn, cardText, randomValue, isDelayed);
+        }
+
+        function addCardToColumn(columnIndex, cliente, valor, isDelayed) {
+            let column = document.querySelectorAll(".kanban-cards")[columnIndex];
+            let tagClass = isDelayed ? "delayed" : "on-time";
+            let tagText = isDelayed ? "Atrasado" : "No Prazo";
+
+            let card = document.createElement("div");
+            card.classList.add("kanban-card");
+            card.innerHTML = `<div class="card-header"><span>${cliente}</span><span class="tag ${tagClass}">${tagText}</span></div><p>💰 R$ ${valor}</p>`;
+            column.appendChild(card);
+        }
+
+    </script>
+
+</body>
+</html>

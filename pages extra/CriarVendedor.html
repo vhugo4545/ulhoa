@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste de Vendedor</title>
+</head>
+<body>
+  <h1>Teste: Criar Vendedor</h1>
+
+  <button onclick="criarVendedor()">Criar Vendedor</button>
+
+  <script>
+    async function criarVendedor() {
+      const vendedor = {
+        nome: "Teste Frontend",
+        tipoLiberacao: "total"
+      };
+
+      try {
+        const response = await fetch("http://localhost:3000/api/vendedores", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(vendedor)
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error("Erro: " + err.error || response.statusText);
+        }
+
+        const data = await response.json();
+        console.log("✅ Vendedor criado com sucesso:", data);
+        alert("✅ Vendedor criado com sucesso: " + data.nome);
+
+      } catch (error) {
+        console.error("❌ Erro ao criar vendedor:", error.message);
+        alert("❌ Erro: " + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

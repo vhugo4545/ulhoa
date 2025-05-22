@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nova Página</title>
+
+  <!-- Estilos -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <link rel="stylesheet" href="style4.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="agrupa.js" defer></script>
+  <script src="editaProposta.js" defer></script>
+  <script src="editaProposta.html" defer></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+
+  <style>
+    body { padding-bottom: 80px; }
+    .valor-destaque {
+      padding: 12px 20px; background-color: #f8f9fa; border-radius: 8px;
+      font-weight: 600; white-space: nowrap;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.04);
+      display: inline-block;
+    }
+    .totais-fixos {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background-color: #ffffff;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+      padding: 10px 20px; display: none;
+      z-index: 1000;
+    }
+    .sidebar {
+      width: 240px; position: fixed; top: 0; left: 0;
+      height: 100%; background-color: #343a40;
+      color: white; padding: 20px;
+    }
+    .sidebar ul { list-style: none; padding: 0; }
+    .sidebar ul li a {
+      color: white; display: flex; align-items: center;
+      padding: 10px 0; text-decoration: none;
+    }
+    .sidebar-footer { margin-top: 40px; }
+    .sidebar-button {
+      width: 100%; background-color: #495057; color: white;
+      border: none; padding: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .content { margin-left: 260px; padding: 20px; }
+    .topbar {
+      display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .search-container {
+      margin: 20px 0; display: flex;
+      align-items: center; gap: 10px;
+    }
+    .search-container input {
+      flex: 1; padding: 8px;
+    }
+    .grupo-controles { margin-bottom: 20px; }
+    .table-container { margin-bottom: 40px; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <ul>
+      <li><li><a href="../pages/listagem.html"><span class="material-icons-outlined">home</span> Início</a></li></li>
+      <li><a href="#"><span class="material-icons-outlined">folder</span> Meus Arquivos</a></li>
+      <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
+      <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button onclick="salvarProdutoBaseCriarProposta() " id="save-proposal" class="sidebar-button">
+        <span class="material-icons-outlined">save</span> Atualizar Proposta
+      </button>
+      <button onclick="gerarFolhaEnvioPDF()" class="sidebar-button">
+        <span class="material-icons-outlined">print</span> Imprimir Envio
+      </button>
+      
+      <button onclick="importarParaOmie()" id="import-omie" class="sidebar-button">
+        <span class="material-icons-outlined">cloud_upload</span> Importar para Omie
+      </button>
+    </div>
+  </aside>
+  <main class="content">
+    <script>
+      async function gerarFolhaEnvioPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+      
+        const nomeCliente = document.getElementById("nome")?.value || "Cliente";
+        const dataEntrega = document.getElementById("dataEntrega")?.value || "Sem data";
+        const vendedor = document.getElementById("selectVendedor")?.value || "Sem vendedor";
+        const telefone = document.getElementById("telefone")?.value || "";
+        const cpfCnpj = document.getElementById("cpfCnpj")?.value || "";
+        const endereco = document.getElementById("endereco")?.value || "";
+        const enderecoEntrega = document.getElementById("enderecoEntrega")?.value || "";
+        const numeroComplemento = document.getElementById("numeroComplemento")?.value || "";
+        const descricao = document.getElementById("descricao")?.value || "";
+        const tipoPagamento = document.getElementById("tipoPagamento")?.value || "";
+        const desconto = document.getElementById("desconto")?.value || "0";
+        const arquiteto = document.getElementById("arquiteto")?.value || "";
+        const codigoArquiteto = document.getElementById("codigo_arqeuiteto")?.value || "";
+      
+        const dataHoje = new Date().toLocaleDateString("pt-BR");
+        const logoUrl = './logo.jpg';
+      
+        const carregarImagem = (url) =>
+          new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+              resolve(canvas.toDataURL("image/png"));
+            };
+            img.src = url;
+          });
+      
+        const logoData = await carregarImagem(logoUrl);
+        doc.addImage(logoData, "PNG", 14, 12, 40, 15);
+        
+      
+        // Cabeçalho
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("Folha de Envio - Proposta Comercial", 105, 20, { align: "center" });
+        doc.setDrawColor(100);
+        doc.setLineWidth(0.5);
+      
+        // Informações organizadas em grid
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+      
+        const info = [
+          [`Data: ${dataHoje}`, `Proposta Nº: ---`],
+          [`Cliente: ${nomeCliente}`, `CPF/CNPJ: ${cpfCnpj}`],
+          [`Telefone: ${telefone}`, `Vendedor: ${vendedor}`],
+          [`Endereço: ${endereco}`, `Entrega: ${enderecoEntrega}`],
+          [`Complemento: ${numeroComplemento}`, `Previsão: ${dataEntrega}`],
+          [`Arquiteto: ${arquiteto}`, `Código Arquiteto: ${codigoArquiteto}`],
+          [`Descrição: ${descricao}`, ``]
+        ];
+      
+        doc.setDrawColor(180);
+        doc.setLineWidth(0.3);
+        doc.line(14, 29, 196, 29);
+      
+        let y = 34;
+        info.forEach(row => {
+          doc.text(row[0], 14, y);
+          if (row[1]) doc.text(row[1], 105, y);
+          y += 6;
+        });
+      
+        const grupos = {};
+        window.includedProducts?.forEach(prod => {
+          if (!grupos[prod.class]) grupos[prod.class] = [];
+          grupos[prod.class].push(prod);
+        });
+      
+        let startY = y + 4;
+      
+        for (const grupo in grupos) {
+          const produtos = grupos[grupo];
+          const primeiro = produtos[0];
+          const quantidadeTotal = "1";
+          const valorTotal = produtos.reduce((s, p) => s + parseFloat(p.cost || 0) * parseFloat(p.quantity || 0), 0);
+      
+          doc.setFillColor(240);
+          doc.setDrawColor(200);
+          doc.setTextColor(50);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.rect(14, startY - 6, 182, 8, 'F');
+          doc.text(`Grupo: ${grupo}`, 16, startY);
+      
+          doc.autoTable({
+            startY: startY + 4,
+            margin: { left: 14, right: 14 },
+            styles: {
+              fontSize: 10,
+              cellPadding: 3,
+              textColor: 30,
+              lineColor: [180, 180, 180],
+              lineWidth: 0.2
+            },
+            headStyles: {
+              fillColor: [100, 100, 100],
+              textColor: 255,
+              fontStyle: 'bold',
+            },
+            head: [["Produto", "Código Omie", "Quantidade", "Valor Total"]],
+            body: [[
+              primeiro.name,
+              primeiro.codigo_produto || "-",
+              quantidadeTotal.toString(),
+              `R$ ${valorTotal.toFixed(2)}`
+            ]],
+            theme: 'grid'
+          });
+      
+          startY = doc.lastAutoTable.finalY + 10;
+        }
+      
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text("Prazo: até 60 dias após aprovação do projeto por parte do cliente.", 14, startY);
+        doc.text("Pagamento: 40% antecipado, 60% na entrega. Pix, boleto ou cartão de crédito (com juros).", 14, startY + 6);
+      
+        doc.setFontSize(9);
+        doc.setTextColor(130);
+        doc.text("www.ferreiraulhoa.com.br | @ferreiraulhoa | contato@ferreiraulhoa.com.br | (31) 98457-2527", 105, 290, { align: "center" });
+      
+        const nomeArquivo = `folha_envio_${nomeCliente.replace(/\s+/g, "_")}.pdf`;
+        doc.save(nomeArquivo);
+      }
+      </script>
+      
+      
+      
+      
+      
+    <script>
+      function gerarCodigoIntegracao(tamanho = 6) {
+        const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%';
+        let codigo = '';
+        for (let i = 0; i < tamanho; i++) {
+          codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        return codigo;
+      }
+      
+      function parseValorReal(texto) {
+        const valor = parseFloat(texto.replace('R$', '').trim());
+        return isNaN(valor) ? 0 : valor;
+      }
+      
+      function formatarDataBR(dataIso) {
+        const data = new Date(dataIso);
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        return `${dia}/${mes}/${ano}`;
+      }
+      
+      function importarParaOmie() {
+  const idClienteOmie = document.getElementById('idClienteOmie')?.value || 0;
+  const dataEntrega = document.getElementById('dataEntrega')?.value || '2025-01-01';
+
+  const produtos = [];
+  let valorTotalGeral = 0; // ✅ Somar todos os totais de tabela
+
+  const tabelas = document.querySelectorAll('.included-group-table');
+
+  tabelas.forEach(tabela => {
+    const linhaProduto = tabela.querySelector('tbody tr:not(.total-row):not(.extra-summary-row)');
+    const linhaTotal = tabela.querySelector('tr.total-row td:nth-child(2)');
+
+    if (linhaProduto && linhaTotal) {
+      const tds = linhaProduto.querySelectorAll('td');
+      const nome = tds[0]?.innerText.trim() || '';
+      const codigoOmie = tds[5]?.innerText.trim() || '-';
+      const valorTotalTabela = parseValorReal(linhaTotal.innerText.trim());
+
+      valorTotalGeral += valorTotalTabela; // ✅ acumula o total geral
+
+      if (nome && valorTotalTabela > 0) {
+        produtos.push({
+          ide: {
+            codigo_item_integracao: codigoOmie !== '-' ? codigoOmie : gerarCodigoIntegracao(6)
+          },
+          inf_adic: {
+            peso_bruto: 0,
+            peso_liquido: 0
+          },
+          produto: {
+            cfop: "5.102",
+            codigo_produto: codigoOmie !== '-' ? codigoOmie : gerarCodigoIntegracao(6),
+            descricao: nome,
+            ncm: "9403.30.00",
+            quantidade: 1,
+            tipo_desconto: "V",
+            unidade: "UN",
+            valor_desconto: 0,
+            valor_unitario: valorTotalTabela
+          }
+        });
+      }
+    }
+  });
+
+  const parcelas = [
+    {
+      data_vencimento: formatarDataBR(dataEntrega),
+      numero_parcela: 1,
+      percentual: 100,
+      valor: valorTotalGeral // ✅ corrigido
+    }
+  ];
+
+  const payload = {
+    cabecalho: {
+      codigo_cliente: parseInt(idClienteOmie),
+      codigo_pedido_integracao: gerarCodigoIntegracao(),
+      data_previsao: formatarDataBR(dataEntrega),
+      etapa: "10",
+      numero_pedido: "62442",
+      codigo_parcela: "999",
+      quantidade_itens: produtos.length
+    },
+    det: produtos,
+    frete: {
+      modalidade: "9"
+    },
+    informacoes_adicionais: {
+      codigo_categoria: "1.01.01",
+      codigo_conta_corrente: 2493964865,
+      consumidor_final: "S",
+      enviar_email: "N"
+    },
+    agropecuario: {
+      cNumReceita: "",
+      cCpfResponsavel: "",
+      nTipoGuia: 1,
+      cUFGuia: "",
+      cSerieGuia: "",
+      nNumGuia: 1
+    },
+    lista_parcelas: {
+      parcela: parcelas
+    }
+  };
+
+  console.log("📦 Payload gerado:", payload);
+
+  fetch('http://localhost:3000/pedidos', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+    return response.json();
+  })
+  .then(data => {
+    console.log("✅ Resposta da API:", data);
+    alert("Pedido enviado com sucesso para o servidor!");
+  })
+  .catch(error => {
+    console.error("❌ Erro ao enviar pedido:", error);
+    alert("Erro ao enviar o pedido para a API.");
+  });
+}
+   </script>
+      
+      
+   
+<!-- Link para os ícones Material Symbols (coloque no <head> se ainda não tiver) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+  <div id="popup-info" class="popup-info" data-group-id="" style="display: none;">
+    <div class="popup-content">
+      <h3 id="popup-title">Informações Adicionais</h3>
+  
+      <div class="popup-grid">
+        <!-- 1. Miudezas (R$) -->
+        <div class="form-group">
+          <label for="popup_miudezas">
+            Miudezas (R$)
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_miudezas')" title="Copiar variável #popup_miudezas" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_miudezas" data-tag="miudezas" placeholder="R$ 0,00">
+        </div>
+  
+        <!-- 2. Gasto Operacional (%) -->
+        <div class="form-group">
+          <label for="popup_gasto_operacional">
+            % Gasto Operacional
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_gasto_operacional')" title="Copiar variável #popup_gasto_operacional" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_gasto_operacional" data-tag="gasto_operacional" placeholder="Ex: 33%">
+        </div>
+  
+        <!-- 3. Impostos (%) -->
+        <div class="form-group">
+          <label for="popup_impostos">
+            % Impostos
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_impostos')" title="Copiar variável #popup_impostos" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_impostos" data-tag="impostos" placeholder="Ex: 12,19%">
+        </div>
+  
+        <!-- 4. Margem de Lucro (%) -->
+        <div class="form-group">
+          <label for="popup_margem_lucro">
+            % Margem de Lucro
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_margem_lucro')" title="Copiar variável #popup_margem_lucro" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_margem_lucro" data-tag="margem_lucro" placeholder="Ex: 20%">
+        </div>
+  
+        <!-- 5. Margem de Segurança (%) -->
+        <div class="form-group">
+          <label for="popup_margem_seguranca">
+            % Margem de Segurança
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_margem_seguranca')" title="Copiar variável #popup_margem_seguranca" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_margem_seguranca" data-tag="margem_seguranca" placeholder="Ex: 5%">
+        </div>
+  
+        <!-- 6. Comissão Arquiteta (%) -->
+        <div class="form-group">
+          <label for="popup_comissao_arquiteta">
+            % Comissão Arquiteta
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_comissao_arquiteta')" title="Copiar variável #popup_comissao_arquiteta" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_comissao_arquiteta" data-tag="comissao_arquiteta" placeholder="Ex: 3%">
+        </div>
+  
+        <!-- 7. Margem de Negociação (R$) -->
+        <div class="form-group">
+          <label for="popup_margem_negociacao">
+            Margem de Negociação (R$)
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_margem_negociacao')" title="Copiar variável #popup_margem_negociacao" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_margem_negociacao" data-tag="margem_negociacao" placeholder="Ex: R$ 100,00">
+        </div>
+  
+        <!-- Campos Livres -->
+        <div class="form-group">
+          <label for="popup_altura_montante">
+            Altura Montante/Vidro (m)
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_altura_montante')" title="Copiar variável #popup_altura_montante" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_altura_montante" data-tag="altura_montante" placeholder="Ex: 2.10">
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_numero_montantes">
+            Número de Montantes
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_numero_montantes')" title="Copiar variável #popup_numero_montantes" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_numero_montantes" data-tag="numero_montantes" placeholder="Ex: 4">
+        </div>
+  
+        <div class="form-group">
+          <label for="popup_numero_protecoes">
+            Número de Proteções
+            <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_numero_protecoes')" title="Copiar variável #popup_numero_protecoes" style="cursor: pointer;">content_copy</span>
+          </label>
+          <input type="text" id="popup_numero_protecoes" data-tag="numero_protecoes" placeholder="Ex: 2">
+        </div>
+      </div>
+  
+      <!-- Campo de descrição livre -->
+      <div class="form-group full-width">
+        <label for="popup_descricao">
+          Unidade
+          <span class="material-symbols-outlined copy-icon" onclick="copiarTag('popup_descricao')" title="Copiar variável #popup_descricao" style="cursor: pointer;">content_copy</span>
+        </label>
+        <textarea id="popup_descricao" data-tag="descricao" rows="1" placeholder="Digite a descrição..."></textarea>
+      </div>
+  
+      <button onclick="fecharPopup()" class="btn btn-secondary mt-3">Fechar</button>
+    </div>
+  </div>
+  
+
+    <header class="topbar">
+      <h2>Compor Produto</h2>
+      <img src="logo-redonda.png" alt="Logo" class="logo-round" height="50">
+    </header>
+  
+<!-- Formulário com sanfonas horizontais -->
+<div class="container-fluid my-4">
+  <form id="novoOrcamentoForm" class="w-100">
+
+    <!-- Sanfona: Dados do Cliente -->
+    <div class="accordion w-100 mb-3" id="accordionCliente">
+      <div class="accordion-item w-100">
+        <h2 class="accordion-header text-center w-100">
+          <button class="accordion-button collapsed justify-content-center w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCliente" aria-expanded="false">
+            Dados do Cliente
+          </button>
+        </h2>
+        <div id="collapseCliente" class="accordion-collapse collapse w-100">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="nome" class="form-label">Nome</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="nome" placeholder="Pesquisar ou adicionar cliente" autocomplete="off">
+                  <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+                  <button class="btn btn-outline-secondary" onclick="atualizarClientes()" type="button"><i class="fas fa-rotate"></i></button>
+                  <button class="btn btn-outline-secondary" type="button"><i class="fas fa-plus"></i></button>
+                </div>
+                <ul id="sugestoes" class="list-group position-absolute w-100 shadow bg-white" style="z-index: 10; max-height: 200px; overflow-y: auto; display: none;"></ul>
+              </div>
+              <div class="col-md-6">
+                <label for="cpfCnpj" class="form-label">CPF/CNPJ</label>
+                <input type="text" class="form-control" id="cpfCnpj" placeholder="Digite o CPF ou CNPJ">
+              </div>
+              <div class="col-md-6">
+                <label for="endereco" class="form-label">Endereço</label>
+                <input type="text" class="form-control" id="endereco" placeholder="Digite o endereço">
+              </div>
+              <div class="col-md-6">
+                <label for="idClienteOmie" class="form-label">ID Cliente Omie</label>
+                <input type="text" class="form-control" id="idClienteOmie" readonly>
+              </div>
+              <div class="col-12">
+                <label for="descricao" class="form-label">Descrição Geral</label>
+                <textarea id="descricao" class="form-control" rows="3" placeholder="Digite a descrição..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sanfona: Endereço e Contato -->
+    <div class="accordion w-100 mb-3" id="accordionEndereco">
+      <div class="accordion-item w-100">
+        <h2 class="accordion-header text-center w-100">
+          <button class="accordion-button collapsed justify-content-center w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEndereco" aria-expanded="false">
+            Endereço e Contato
+          </button>
+        </h2>
+        <div id="collapseEndereco" class="accordion-collapse collapse w-100">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="numeroComplemento" class="form-label">Número/Complemento</label>
+                <input type="text" class="form-control" id="numeroComplemento">
+              </div>
+              <div class="col-md-6">
+                <label for="enderecoEntrega" class="form-label">Endereço de Entrega</label>
+                <input type="text" class="form-control" id="enderecoEntrega">
+              </div>
+              <div class="col-md-6">
+                <label for="telefone" class="form-label">Telefone</label>
+                <input type="text" class="form-control" id="telefone">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sanfona: Informações Complementares -->
+    <div class="accordion w-100 mb-3" id="accordionComplementares">
+      <div class="accordion-item w-100">
+        <h2 class="accordion-header text-center w-100">
+          <button class="accordion-button collapsed justify-content-center w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseComplementares" aria-expanded="false">
+            Informações Complementares
+          </button>
+        </h2>
+        <div id="collapseComplementares" class="accordion-collapse collapse w-100">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="arquiteto" class="form-label">Arquiteto</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="arquiteto" placeholder="Pesquisar ou adicionar arquiteto" autocomplete="off">
+                  <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+                  <button class="btn btn-outline-secondary" type="button"><i class="fas fa-rotate"></i></button>
+                  <button class="btn btn-outline-secondary" type="button"><i class="fas fa-plus"></i></button>
+                </div>
+                <ul id="sugestoes-arquiteto" class="list-group position-absolute w-100 shadow bg-white" style="z-index: 10; max-height: 200px; overflow-y: auto; display: none;"></ul>
+              </div>
+              <div class="col-md-6">
+                <label for="codigo_arqeuiteto" class="form-label">Código Arquiteto</label>
+                <input type="text" class="form-control" id="codigo_arqeuiteto" readonly>
+              </div>
+              <div class="col-md-6">
+                <label for="dataEntrega" class="form-label">Data de Previsão de Finalização</label>
+                <input type="date" class="form-control" id="dataEntrega">
+              </div>
+              <div class="col-md-6">
+                <label for="selectVendedor" class="form-label">Selecionar Vendedor</label>
+                <select class="form-select" id="selectVendedor">
+                  <option value="">Selecione</option>
+                </select>
+
+              
+                
+              </div>
+              <div class="col-md-6">
+                <label for="tipoPagamento" class="form-label">Tipo de Pagamento</label>
+                <select class="form-select" id="tipoPagamento">
+                  <option value="">Selecione</option>
+                  <option value="pix">Pix</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="cartao">Cartão de Crédito</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="desconto" class="form-label">Desconto (%)</label>
+                <input type="number" class="form-control" id="desconto" value="0" min="0" max="100">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Sanfona: Ambiente Financeiro -->
+<div class="accordion w-100 mb-3" id="accordionFinanceiro">
+  <div class="accordion-item w-100">
+    <h2 class="accordion-header text-center w-100">
+      <button class="accordion-button collapsed justify-content-center w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinanceiro" aria-expanded="false">
+        Ambiente Financeiro
+      </button>
+    </h2>
+    <div id="collapseFinanceiro" class="accordion-collapse collapse w-100">
+      <div class="accordion-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Comissão do Vendedor</label>
+            <div class="input-group">
+              <select class="form-select" id="tipoComissaoVendedor">
+                <option value="%">%</option>
+                <option value="R$">R$</option>
+              </select>
+              <input type="number" class="form-control" id="valorComissaoVendedor" placeholder="Valor">
+              <span class="input-group-text" id="valorFinalComissaoVendedor">R$ 0,00</span>
+            </div>
+            <label class="form-label mt-2">Data da Comissão do Vendedor</label>
+            <input type="date" class="form-control" id="dataComissaoVendedor">
+            <br>
+            <button type="button" id="btnLancarContaPagar" class="btn btn-primary">
+              Lançar Conta a Pagar (Arquiteto)
+            </button>
+            
+            
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Comissão do Arquiteto</label>
+            <div class="input-group">
+              <select class="form-select" id="tipoComissaoArquiteto">
+                <option value="%">%</option>
+                <option value="R$">R$</option>
+              </select>
+              <input type="number" class="form-control" id="valorComissaoArquiteto" placeholder="Valor">
+              <span class="input-group-text" id="valorFinalComissaoArquiteto">R$ 0,00</span>
+            </div>
+            <label class="form-label mt-2">Data da Comissão do Arquiteto</label>
+            <input type="date" class="form-control" id="dataComissaoArquiteto">
+            <br>
+            <button id="btnLancarContaPagar" class="btn btn-primary" onclick="lancarContaPagar('arquiteto')">
+              Lançar Conta a Pagar (Arquiteto)
+            </button>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </form>
+</div>
+
+    
+
+    <!-- Container de busca centralizado -->
+    <div class="search-container d-flex justify-content-center align-items-center gap-3 mb-4">
+      <span class="material-icons-outlined">search</span>
+      <input type="text" id="product-search" class="form-control" placeholder="Pesquisar produtos..." >
+      <div class="dropdown">
+        <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownClassesBtn" data-bs-toggle="dropdown" aria-expanded="false">
+          Escolher Classe
+        </button>
+        <ul class="dropdown-menu" id="dropdownClassesList" aria-labelledby="dropdownClassesBtn">
+          <!-- itens dinâmicos -->
+        </ul>
+      </div>
+    </div>
+
+    <div id="grupo-controles" class="grupo-controles">
+      <h4>Exibir Grupos:</h4>
+      <div id="grupo-checkboxes"></div>
+    </div>
+
+    <div class="table-container">
+      <h3>Produtos Disponíveis</h3>
+      <table id="search-results" class="table">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Custo</th>
+            <th>Preço</th>
+            <th>Codigo Omie</th>
+            <th>Detalhes</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <h3>Produtos Selecionados</h3>
+      <table id="included-products" class="table">
+        <tbody></tbody>
+      </table>
+      <div id="included-products-container"></div>
+
+      
+   
+    </div>
+
+    <footer id="footer-total" class="text-center bg-light border-top py-3">
+      <strong>Valor Final da Proposta:</strong>
+      <span id="valor-total-proposta" class="text-success">R$ 0,00</span>
+    </footer>
+    
+  </main>
+
+  <script>
+
+document.getElementById("btnLancarContaPagar").addEventListener("click", function (e) {
+  e.preventDefault(); // ✅ evita recarregamento
+  lancarContaPagar("arquiteto");
+});
+
+
+function carregarPropostaEPreencherTabela() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const propostaId = urlParams.get("id");
+
+  if (!propostaId) {
+    console.error("❌ Nenhum ID de proposta na URL.");
+    return;
+  }
+
+  fetch('http://localhost:3000/api/propostas/')
+    .then(res => res.json())
+    .then(propostas => {
+      const proposta = propostas.find(p => p._id === propostaId);
+
+      if (!proposta) {
+        console.error("Proposta não encontrada.");
+        return;
+      }
+      console.log(proposta)
+      const campos = proposta.camposFormulario || {};
+
+      document.getElementById("nome").value = campos.nomeCliente || "";
+      document.getElementById("cpfCnpj").value = campos.cpfCnpj || "";
+      document.getElementById("endereco").value = campos.endereco || "";
+      document.getElementById("idClienteOmie").value = campos.idClienteOmie || "";
+      document.getElementById("descricao").value = campos.descricao || "";
+      document.getElementById("numeroComplemento").value = campos.numeroComplemento || "";
+      document.getElementById("enderecoEntrega").value = campos.enderecoEntrega || "";
+      document.getElementById("telefone").value = campos.telefone || "";
+      document.getElementById("arquiteto").value = campos.arquiteto || "";
+      document.getElementById("codigo_arqeuiteto").value = campos.codigoArquiteto || "";
+      document.getElementById("dataEntrega").value = campos.dataEntrega || "";
+      document.getElementById("selectVendedor").value = campos.vendedor || "";
+      document.getElementById("tipoPagamento").value = campos.tipoPagamento || "";
+      document.getElementById("desconto").value = campos.desconto ?? 0;
+
+      // 🧩 Prepara os dados dos produtos agrupados
+      const produtosTransformados = [];
+      window.groupPopupsData = {};
+
+      proposta.grupos.forEach(grupo => {
+        const grupoId = `grupo-${grupo.nome.replace(/\s+/g, '-').toLowerCase()}`;
+
+        groupPopupsData[grupoId] = {
+          ...(grupo.parametros || {}),
+          groupSaleFormula: grupo.parametros?.groupSaleFormula || ""
+        };
+
+        grupo.itens.forEach(item => {
+  const quantidade = item.quantidade || 1;
+  produtosTransformados.push({
+    name: item.nome_produto,
+    price: item.preco,
+    cost: quantidade > 0 ? item.custo / quantidade : 0,
+    quantity: quantidade,
+    priceFormula: item.formula_preco || "",
+    costFormula: "", // ← não usamos mais isso como fórmula
+    adjustedQuantityFormula: item.formula_quantidade || "",
+    class: grupo.nome,
+    _id: item._id,
+    index: produtosTransformados.length,
+    codigo_produto: item.codigo_omie || "" // ✅ Correto agora
+  });
+});
+
+      });
+
+      window.includedProducts = produtosTransformados;
+      renderIncludedProducts();
+    })
+    .catch(err => {
+      console.error("Erro ao carregar propostas:", err);
+    });
+}
+
+carregarPropostaEPreencherTabela();
+
+
+async function salvarProdutoBaseCriarProposta() {
+  console.log("🔄 Atualizando Proposta...");
+
+  const params = new URLSearchParams(window.location.search);
+  const idProposta = params.get("id");
+
+  if (!idProposta) {
+    alert("❌ ID da proposta não encontrado na URL.");
+    return;
+  }
+
+  try {
+    const grupos = [];
+
+    document.querySelectorAll(".grupo-tabela").forEach(grupoEl => {
+      if (!grupoEl.offsetParent) return; // Ignora grupos ocultos
+
+      const grupoId = grupoEl.dataset.group || "grupo-sem-nome";
+      const nomeGrupo = grupoId.replace("grupo-", "") || "Sem nome";
+
+      const itens = [];
+      grupoEl.querySelectorAll("tbody tr.draggable").forEach(row => {
+        const nomeProduto = row.children[0]?.textContent.trim() || "";
+        const valorCusto = row.children[1]?.innerText.trim().replace("R$", "").replace(",", ".") || "0";
+        const valorVenda = row.children[2]?.innerText.trim().replace("R$", "").replace(",", ".") || "0";
+        const quantidade = row.children[3]?.innerText.trim().replace(",", ".") || "1";
+        const codigo_omie = row.children[5]?.innerText.trim() || "";
+
+        const formulaPreco = row.querySelector(`.formula-input[data-type="priceFormula"]`)?.dataset.rawFormula || "";
+        const formulaQtd = row.querySelector(`.formula-input[data-type="adjustedQuantityFormula"]`)?.dataset.rawFormula || "";
+
+        itens.push({
+          nome_produto: nomeProduto,
+          preco: valorVenda,
+          custo: valorCusto,
+          quantidade,
+          valor_venda: valorVenda,
+          valor_custo: valorCusto,
+          formula_preco: formulaPreco,
+          formula_quantidade: formulaQtd,
+          codigo_omie
+        });
+      });
+
+      const parametros = groupPopupsData?.[grupoId] || {};
+      const formulaFinalGroup = grupoEl.querySelector(".formula-input[data-type='groupSaleFormula']")?.innerText.trim() || "";
+      parametros.groupSaleFormula = formulaFinalGroup;
+
+      grupos.push({
+        nome: nomeGrupo,
+        parametros,
+        itens
+      });
+    });
+
+    const camposFormulario = {
+      nomeCliente: document.getElementById("nome")?.value || "",
+      cpfCnpj: document.getElementById("cpfCnpj")?.value || "",
+      endereco: document.getElementById("endereco")?.value || "",
+      idClienteOmie: document.getElementById("idClienteOmie")?.value || "",
+      descricao: document.getElementById("descricao")?.value || "",
+      numeroComplemento: document.getElementById("numeroComplemento")?.value || "",
+      enderecoEntrega: document.getElementById("enderecoEntrega")?.value || "",
+      telefone: document.getElementById("telefone")?.value || "",
+      arquiteto: document.getElementById("arquiteto")?.value || "",
+      codigoArquiteto: document.getElementById("codigo_arqeuiteto")?.value || "",
+      dataEntrega: document.getElementById("dataEntrega")?.value || "",
+      vendedor: document.getElementById("selectVendedor")?.value || "",
+      tipoPagamento: document.getElementById("tipoPagamento")?.value || "",
+      desconto: parseFloat(document.getElementById("desconto")?.value || "0")
+    };
+
+    const nomeProposta = grupos[0]?.itens?.[0]?.nome_produto || "Sem nome";
+
+    const proposta = {
+      nome: nomeProposta,
+      tipoProposta: "editavel",
+      camposFormulario,
+      grupos
+    };
+
+    const resposta = await fetch(`http://localhost:3000/api/propostas/${idProposta}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(proposta)
+    });
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) throw new Error("Erro: " + JSON.stringify(resultado));
+
+    alert("✅ Proposta atualizada com sucesso!");
+    console.log("📦 Dados enviados:", proposta);
+    console.log("🆔 ID da proposta atualizada:", resultado._id);
+    location.reload();
+  } catch (err) {
+    console.error("❌ Erro ao atualizar proposta:", err);
+    alert("Erro ao atualizar proposta: " + err.message);
+  }
+}
+
+
+
+  </script>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const formatar = (valor) =>
+      "R$ " + valor.toFixed(2).replace(".", ",");
+
+    function calcularComissao(tipo, valorInput, outputSpan) {
+      const totalPropostaEl = document.getElementById("valor-total-proposta");
+      if (!totalPropostaEl) return;
+
+      const totalTexto = totalPropostaEl.textContent.replace(/[^\d,]/g, "").replace(",", ".");
+      const total = parseFloat(totalTexto) || 0;
+
+      const tipoValor = tipo.value;
+      const valor = parseFloat(valorInput.value) || 0;
+
+      if (tipoValor === "%") {
+        const resultado = (valor / 100) * total;
+        outputSpan.textContent = formatar(resultado);
+      } else {
+        outputSpan.textContent = formatar(valor);
+      }
+    }
+
+    // Vendedor
+    const tipoVendedor = document.getElementById("tipoComissaoVendedor");
+    const valorVendedor = document.getElementById("valorComissaoVendedor");
+    const resultadoVendedor = document.getElementById("valorFinalComissaoVendedor");
+
+    // Arquiteto
+    const tipoArquiteto = document.getElementById("tipoComissaoArquiteto");
+    const valorArquiteto = document.getElementById("valorComissaoArquiteto");
+    const resultadoArquiteto = document.getElementById("valorFinalComissaoArquiteto");
+
+    // Eventos
+    [tipoVendedor, valorVendedor].forEach(el =>
+      el.addEventListener("input", () => calcularComissao(tipoVendedor, valorVendedor, resultadoVendedor))
+    );
+    [tipoArquiteto, valorArquiteto].forEach(el =>
+      el.addEventListener("input", () => calcularComissao(tipoArquiteto, valorArquiteto, resultadoArquiteto))
+    );
+
+    // Inicial
+    calcularComissao(tipoVendedor, valorVendedor, resultadoVendedor);
+    calcularComissao(tipoArquiteto, valorArquiteto, resultadoArquiteto);
+  });
+</script>
+
+ <!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html>
+
+

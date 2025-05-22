@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Orçamento</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="nova_pagina.js" defer></script>
+    <!-- Fonte Poppins e Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <!-- Menu lateral -->
+    <aside class="sidebar">
+      
+        <ul>
+            <li><a href="listagem.html"><span class="material-icons-outlined">home</span> Início</a></li>
+            <li><a href="agrupa.html"><span class="material-icons-outlined">add_box</span> Criar Produto Composto</a></li>
+            <li><a href="editor.htm"><span class="material-icons-outlined">folder</span> Meus Arquivos</a></li>
+            <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
+            <li><a href="index.html"><span class="material-icons-outlined">logout</span> Logout</a></li>
+        </ul>
+    
+        <!-- Botões no rodapé do menu -->
+        <div class="sidebar-footer">
+            <button id="save-proposal" class="sidebar-button">
+                <span class="material-icons-outlined">save</span> Salvar Proposta
+            </button>
+            <button id="save-copy" class="sidebar-button">
+                <span class="material-icons-outlined">content_copy</span> Salvar com Cópia
+            </button>
+        </div>
+    </aside>
+    
+
+    <!-- Conteúdo principal -->
+    <main class="content">
+        <!-- Barra superior -->
+        <header class="topbar">
+            <h2>Cadastro de Propostas</h2>
+            <img src="logo-redonda.png" alt="Logo" class="logo-round"> <!-- Logo no canto direito -->
+        </header>
+
+        <!-- Formulário com três colunas -->
+       <!-- Formulário com três colunas -->
+<div class="form-container">
+    <div class="form-column">
+        <div class="form-group">
+            <label for="field1">Nome</label>
+            <input type="text" id="field1" placeholder="Digite o nome">
+        </div>
+        <div class="form-group">
+            <label for="field2">Telefone</label>
+            <input type="text" id="field2" placeholder="Digite o telefone">
+        </div>
+        <div class="form-group">
+            <label for="field3">E-mail</label>
+            <input type="email" id="field3" placeholder="Digite o e-mail">
+        </div>
+        <div class="form-group">
+            <label for="field4">Endereço</label>
+            <input type="text" id="field4" placeholder="Digite o endereço">
+        </div>
+        <div class="form-group">
+            <label for="field5">Cidade</label>
+            <input type="text" id="field5" placeholder="Digite a cidade">
+        </div>
+    </div>
+
+    <div class="form-column">
+        <div class="form-group">
+            <label for="field6">Estado</label>
+            <input type="text" id="field6" placeholder="Digite o estado">
+        </div>
+        <div class="form-group">
+            <label for="field7">CEP</label>
+            <input type="text" id="field7" placeholder="Digite o CEP">
+        </div>
+        <div class="form-group">
+            <label for="field8">CPF/CNPJ</label>
+            <input type="text" id="field8" placeholder="Digite o CPF ou CNPJ">
+        </div>
+        <div class="form-group">
+            <label for="field9">Data de Nascimento</label>
+            <input type="date" id="field9">
+        </div>
+        <div class="form-group">
+            <label for="field10">Gênero</label>
+            <select id="field10">
+                <option value="">Selecione</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="outro">Outro</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-column">
+        <div class="form-group">
+            <label for="field11">Profissão</label>
+            <input type="text" id="field11" placeholder="Digite a profissão">
+        </div>
+        <div class="form-group">
+            <label for="field12">Empresa</label>
+            <input type="text" id="field12" placeholder="Digite o nome da empresa">
+        </div>
+        <div class="form-group">
+            <label for="field13">Salário</label>
+            <input type="number" id="field13" placeholder="Digite o salário">
+        </div>
+        <div class="form-group">
+            <label for="field14">Observações</label>
+            <textarea id="field14" placeholder="Digite observações"></textarea>
+        </div>
+       
+    </div>
+</div>
+
+<!-- Barra de pesquisa estilizada -->
+<div class="search-container">
+    <span class="search-icon material-icons-outlined">search</span>
+    <input type="text" id="product-search" placeholder="Pesquisar produtos...">
+    
+    <!-- Seleção de Classe -->
+    <select id="class-filter">
+        <option value="">Todas as Classes</option>
+        <option value="Eletrônicos">Eletrônicos</option>
+        <option value="Móveis">Móveis</option>
+        <option value="Eletrodomésticos">Eletrodomésticos</option>
+    </select>
+</div>
+
+
+
+
+<!-- Tabela de pesquisa de produtos -->
+<div class="table-container">
+    <h3>Produtos Disponíveis</h3>
+    <table id="search-results">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Custo</th>
+                <th>Detalhes</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Resultados da pesquisa aparecem aqui -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Tabela de inclusão de produtos selecionados -->
+<div class="table-container">
+    <h3>Produtos Selecionados</h3>
+    <table id="included-products">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Custo</th>
+                <th>Classe</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Produtos adicionados aparecem aqui, agrupados por classe -->
+        </tbody>
+    </table>
+</div>
+
+
+    </main>
+
+   
+</body>
+</html>
