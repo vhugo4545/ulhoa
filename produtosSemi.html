@@ -195,7 +195,7 @@
     
         // Carregar produtos com regras aplicadas
         async function carregarProdutos() {
-            const response = await fetch('http://localhost:3000/produtos/visualizar');
+            const response = await fetch('https://ulhoa-0a02024d350a.herokuapp.com/produtos/visualizar');
             if (!response.ok) throw new Error(`Erro ${response.status}`);
             produtos = await response.json();
             renderizarProdutosLista(produtos);
@@ -203,7 +203,7 @@
     
         // Listar regras cadastradas
         async function listarRegras() {
-            const response = await fetch('http://localhost:3000/produtos/regras');
+            const response = await fetch('https://ulhoa-0a02024d350a.herokuapp.com/produtos/regras');
             regrasGlobais = await response.json();
             renderTabela(regrasGlobais);
         }
@@ -245,7 +245,7 @@
     
             const payload = { codigoProdutoAcabado: codigoAcabado, codigoProdutoReferencia: codigoReferencia, formula };
     
-            const response = await fetch('http://localhost:3000/produtos/regra', {
+            const response = await fetch('https://ulhoa-0a02024d350a.herokuapp.com/produtos/regra', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -310,7 +310,7 @@
             const payload = {};
             campos.forEach(campo => payload[campo.dataset.field] = campo.value);
     
-            const response = await fetch(`http://localhost:3000/produtos/regra/${id}`, {
+            const response = await fetch(`https://ulhoa-0a02024d350a.herokuapp.com/produtos/regra/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -328,7 +328,7 @@
         // Excluir regra
         async function excluirRegra(id) {
             if (!confirm('Confirmar exclusão?')) return;
-            const response = await fetch(`http://localhost:3000/produtos/regra/${id}`, { method: 'DELETE' });
+            const response = await fetch(`https://ulhoa-0a02024d350a.herokuapp.com/produtos/regra/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 await listarRegras();
                 await carregarProdutos();
