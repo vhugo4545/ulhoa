@@ -381,7 +381,7 @@
   <script>
 
 function carregarPropostaEPreencherTabela() {
-  fetch('http://localhost:3000/api/propostas/')
+  fetch('https://ulhoa-0a02024d350a.herokuapp.com/api/propostas/')
     .then(res => res.json())
     .then(propostas => {
       // 🔍 Filtra apenas propostas com tipo "modelo"
