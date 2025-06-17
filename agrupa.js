@@ -83,25 +83,6 @@ carregarProdutosDoServidor()
 
 
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const selectVendedor = document.getElementById("selectVendedor");
-
-  try {
-    const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/vendedores");
-    const vendedores = await response.json();
-
-    vendedores.forEach(vendedor => {
-      const option = document.createElement("option");
-      option.value = vendedor.nome;
-      option.textContent = vendedor.nome;
-      selectVendedor.appendChild(option);
-    });
-
-  } catch (error) {
-    console.error("❌ Erro ao carregar vendedores:", error);
-  }
-});
-
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAutoComplete({
@@ -116,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     endpoint: "https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar"
   });
 });
-
+/*
 function setupAutoComplete({ inputId, listaId, endpoint }) {
   const input = document.getElementById(inputId);
   const sugestoes = document.getElementById(listaId);
@@ -176,7 +157,7 @@ function setupAutoComplete({ inputId, listaId, endpoint }) {
     }
   });
 }
-
+*/
 
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -449,47 +430,54 @@ window.includedProducts = [];
    
 
     
-    function filterProducts() {
-      const queryBruta = productSearch.value || "";
-      const query = normalizarTexto(queryBruta.trim());
-    
-      searchResultsTable.innerHTML = "";
-    
-      if (query.length < 3) return;
-    
-      const filteredProducts = products.filter(product => {
-        const nome = normalizarTexto(product.name);
-        const codigo = normalizarTexto(product.codigo_produto?.toString());
-    
-        return nome.includes(query) || codigo.includes(query);
-      });
-    
-      filteredProducts.forEach(product => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${product.name}</td>
-          <td>R$ ${product.price.toFixed(2)}</td>
-          <td>R$ ${product.cost.toFixed(2)}</td>
-          <td>${product.codigo_produto || "-"}</td>
-          <td>
-            <span class="detail-icon material-icons-outlined" title="Ver detalhes" style="cursor:pointer;">help_outline</span>
-          </td>
-          <td>
-            <button class="add-product btn btn-sm btn-success">Adicionar</button>
-          </td>
-        `;
-        searchResultsTable.appendChild(row);
-    
-        row.querySelector(".add-product").addEventListener("click", () => {
-          addProduct(product);
-        });
-    
-        row.querySelector(".detail-icon").addEventListener("click", () => {
-          alert(`📝 Descrição: \n\n${product.description}`);
-        });
-      });
-    }
-    
+ function filterProducts() {
+  const queryBruta = productSearch.value || "";
+  const queryPartes = queryBruta
+    .split(";")
+    .map(p => normalizarTexto(p.trim()))
+    .filter(p => p.length > 0);
+
+  searchResultsTable.innerHTML = "";
+
+  if (queryPartes.length === 0) return;
+
+  const filteredProducts = products.filter(product => {
+    const nome = normalizarTexto(product.name || "");
+    const codigo = normalizarTexto(product.codigo_produto?.toString() || "");
+    const descricao = normalizarTexto(product.description || "");
+    const caracteristicas = normalizarTexto(product.characteristics || product.caracteristicas || "");
+
+    const textoCompleto = `${nome} ${codigo} ${descricao} ${caracteristicas}`;
+
+    return queryPartes.every(parte => textoCompleto.includes(parte));
+  });
+
+  filteredProducts.forEach(product => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${product.name}</td>
+      <td>R$ ${product.price.toFixed(2)}</td>
+      <td>R$ ${product.cost.toFixed(2)}</td>
+      <td>${product.codigo_produto || "-"}</td>
+      <td>
+        <span class="detail-icon material-icons-outlined" title="Ver detalhes" style="cursor:pointer;">help_outline</span>
+      </td>
+      <td>
+        <button class="add-product btn btn-sm btn-success">Adicionar</button>
+      </td>
+    `;
+    searchResultsTable.appendChild(row);
+
+    row.querySelector(".add-product").addEventListener("click", () => {
+      addProduct(product);
+    });
+
+    row.querySelector(".detail-icon").addEventListener("click", () => {
+      alert(`📝 Descrição:\n\n${product.description || "Sem descrição disponível."}`);
+    });
+  });
+}
+
     
     function normalizarTexto(texto) {
       return (texto || "")
@@ -646,84 +634,72 @@ function addProduct(product) {
     ordenarCheckboxesStaticamente();
   }
   
-  function abrirPopupValores(custos) {
-    const existingPopup = document.getElementById("popup-valores");
-    if (existingPopup) existingPopup.remove();
-  
-    const popup = document.createElement("div");
-    popup.id = "popup-valores";
-    popup.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 1px solid #ccc;
-      padding: 20px;
-      z-index: 10000;
-      width: 600px;
-      font-family: Arial, sans-serif;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    `;
-  
-    const formatMoney = val => !isNaN(val) ? `R$ ${parseFloat(val).toFixed(2)}` : "-";
-    const formatPercent = val => !isNaN(val) ? `${parseFloat(val).toFixed(2)}%` : "-";
-  
-    const sanitize = val => {
-      if (typeof val === 'string') {
-        val = val.replace(/[^0-9,.-]/g, '').replace(',', '.');
-      }
-      return parseFloat(val);
-    };
-  
-    const gerarBloco = (titulo, id, valor) => `
-      <div id="${id}" style="margin-bottom: 15px;">
-        <label style="font-weight: bold;">${titulo}</label>
-        <div>${valor}</div>
-      </div>
-    `;
-  
-    // Sanitize valores recebidos
-    const custoTotal = sanitize(custos.custoTotalMaterial);
-    const precoSugerido = sanitize(custos.precoSugerido);
-    const precoMinimo = sanitize(custos.precoMinimo);
-  
-    const lucroReal = precoSugerido - custoTotal;
-  
-    const custosCorrigidos = {
-      custoTotalMaterial: custoTotal,
-      precoSugerido,
-      precoMinimo,
-      lucroReal,
-      custoTotalMaterialPct: precoSugerido ? (custoTotal / precoSugerido * 100) : null,
-      precoMinimoPct: precoSugerido ? (precoMinimo / precoSugerido * 100) : null,
-      precoSugeridoPct: precoSugerido ? 100 : null,
-      lucroRealPct: precoSugerido ? (lucroReal / precoSugerido * 100) : null
-    };
-  
-    popup.innerHTML = `
-      <h4 style="margin-bottom: 20px;">Valores Calculados</h4>
-      <div style="display: flex; gap: 30px; justify-content: space-between;">
-        <div style="flex: 1;">
-          ${gerarBloco("Custo Total de Material", "custoTotalMaterial", formatMoney(custosCorrigidos.custoTotalMaterial))}
-          ${gerarBloco("Preço Mínimo", "precoMinimo", formatMoney(custosCorrigidos.precoMinimo))}
-          ${gerarBloco("Preço Sugerido", "precoSugerido", formatMoney(custosCorrigidos.precoSugerido))}
-          ${gerarBloco("Lucro Real", "lucroReal", formatMoney(custosCorrigidos.lucroReal))}
-        </div>
-        <div style="flex: 1;">
-          ${gerarBloco("Custo Total (%)", "custoTotalMaterialPct", formatPercent(custosCorrigidos.custoTotalMaterialPct))}
-          ${gerarBloco("Preço Mínimo (%)", "precoMinimoPct", formatPercent(custosCorrigidos.precoMinimoPct))}
-          ${gerarBloco("Preço Sugerido (%)", "precoSugeridoPct", formatPercent(custosCorrigidos.precoSugeridoPct))}
-          ${gerarBloco("Lucro Real (%)", "lucroRealPct", formatPercent(custosCorrigidos.lucroRealPct))}
-        </div>
-      </div>
-      <div style="text-align: center; margin-top: 20px;">
-        <button onclick="document.getElementById('popup-valores').remove()" class="btn btn-secondary">Fechar</button>
-      </div>
-    `;
-  
-    document.body.appendChild(popup);
+function abrirPopupValores(grupoId) {
+  const tabela = document.querySelector(`[data-grupo-id="${grupoId}"] table`);
+  if (!tabela) {
+    console.warn(`⚠️ Tabela não encontrada para grupo: ${grupoId}`);
+    return;
   }
+
+  const linhas = tabela.querySelectorAll("tbody tr");
+  let custoTotal = 0;
+
+  linhas.forEach(linha => {
+    const td = linha.querySelector("td:nth-child(2)");
+    if (td) {
+      const texto = td.textContent.replace(/[^0-9,.-]/g, '').replace(',', '.');
+      const valor = parseFloat(texto);
+      if (!isNaN(valor)) custoTotal += valor;
+    }
+  });
+
+  const precoMinimo = custoTotal * 1.1;
+  const precoSugerido = custoTotal * 1.3;
+  const lucroReal = precoSugerido - custoTotal;
+
+  const formatMoney = val => !isNaN(val) ? `R$ ${parseFloat(val).toFixed(2)}` : "-";
+  const formatPercent = val => !isNaN(val) ? `${parseFloat(val).toFixed(2)}%` : "-";
+
+  const popup = document.createElement("div");
+  popup.id = "popup-valores";
+  popup.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    z-index: 10000;
+    width: 600px;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  `;
+
+  popup.innerHTML = `
+    <h4 style="margin-bottom: 20px;">Valores Calculados</h4>
+    <div style="display: flex; gap: 30px; justify-content: space-between;">
+      <div style="flex: 1;">
+        <div><strong>Custo Unitário:</strong> ${formatMoney(custoTotal)}</div>
+        <div><strong>Preço Mínimo:</strong> ${formatMoney(precoMinimo)}</div>
+        <div><strong>Preço Sugerido:</strong> ${formatMoney(precoSugerido)}</div>
+        <div><strong>Lucro Real:</strong> ${formatMoney(lucroReal)}</div>
+      </div>
+      <div style="flex: 1;">
+        <div><strong>Custo Total (%):</strong> ${formatPercent((custoTotal / precoSugerido) * 100)}</div>
+        <div><strong>Preço Mínimo (%):</strong> ${formatPercent((precoMinimo / precoSugerido) * 100)}</div>
+        <div><strong>Preço Sugerido (%):</strong> 100%</div>
+        <div><strong>Lucro Real (%):</strong> ${formatPercent((lucroReal / precoMinimo) * 100)}</div>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="document.getElementById('popup-valores').remove()" class="btn btn-secondary">Fechar</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+}
+
   
   function calcularEPreencherPrecoMinimo(groupId) {
     try {
@@ -791,81 +767,58 @@ function addProduct(product) {
   
   
   
-  function tratarPercentual(valor) {
+function tratarPercentual(valor) {
     let numero = parseFloat(valor);
     if (isNaN(numero)) return 0;
     return numero > 1 ? numero / 100 : numero;
   }
   
-  function calcularValoresGrupo(grupoId, custoMaterialBase) {
-    const data = groupPopupsData[grupoId] || {};
-  
-    // Conversão dos valores do popup com tratamento inteligente
-    const miudezas = tratarPercentual(data.miudezas);
-    const gastoOperacional = tratarPercentual(data.gasto_operacional);
-    const impostos = tratarPercentual(data.impostos);
-    const margemLucro = tratarPercentual(data.margem_lucro);
-    const margemSeguranca = tratarPercentual(data.margem_seguranca);
-    const comissaoArquiteta = tratarPercentual(data.comissao_arquiteta);
-    const margemNegociacao = tratarPercentual(data.margem_negociacao);
-  
-    // 1️⃣ Cálculo do Custo Total de Material
-    const custoTotalMaterial = custoMaterialBase * (1 + miudezas);
-  
-    // 2️⃣ Preço Mínimo
-    const divisor = 1 - (gastoOperacional + impostos + margemLucro);
-    const multiplicador = 1 + (margemSeguranca + comissaoArquiteta);
-    const precoMinimo = divisor !== 0 ? (custoTotalMaterial / divisor) * multiplicador : 0;
-  
-    // 3️⃣ Preço Sugerido
-    const precoSugerido = precoMinimo * (1 + margemNegociacao);
-  
-    // 4️⃣ Lucro Real
-    const lucroReal = precoMinimo !== 0 ? (margemLucro / precoMinimo) : 0;
-  
-    return {
-      custoTotalMaterial: `R$ ${custoTotalMaterial.toFixed(2)}`,
-      precoMinimo: `R$ ${precoMinimo.toFixed(2)}`,
-      precoSugerido: `R$ ${precoSugerido.toFixed(2)}`,
-      lucroReal: `${(lucroReal * 100).toFixed(2)}%`
-    };
-  }
-  
-  
-    
+function calcularValoresGrupo(grupoId, custoMaterialBase) {
+  const data = groupPopupsData[grupoId] || {};
+
+  const miudezas = tratarPercentual(data.miudezas);
+  const gastoOperacional = tratarPercentual(data.gasto_operacional);
+  const impostos = tratarPercentual(data.impostos);
+  const margemLucro = tratarPercentual(data.margem_lucro);
+  const margemSeguranca = tratarPercentual(data.margem_seguranca);
+  const comissaoArquiteta = tratarPercentual(data.comissao_arquiteta);
+  const margemNegociacao = tratarPercentual(data.margem_negociacao);
+
+  const custoTotalMaterial = custoMaterialBase * (1 + miudezas);
+
+  const divisor = 1 - (gastoOperacional + impostos + margemLucro);
+  const multiplicador = 1 + (margemSeguranca + comissaoArquiteta);
+  const precoMinimo = divisor !== 0 ? (custoTotalMaterial / divisor) * multiplicador : 0;
+
+  const precoSugerido = precoMinimo * (1 + margemNegociacao);
+
+  const lucroReal = precoMinimo !== 0 ? (margemLucro / precoMinimo) : 0;
+
+  return {
+    custoTotalMaterial: `R$ ${custoTotalMaterial.toFixed(2)}`,
+    precoMinimo: `R$ ${precoMinimo.toFixed(2)}`,
+    precoSugerido: `R$ ${precoSugerido.toFixed(2)}`,
+    lucroReal: `${(lucroReal * 100).toFixed(2)}%`
+  };
+}
+
+  function isCriarProposta() {
+  return window.location.pathname.includes("criarProposta.html");
+}
+
+// 🔄 Função renderIncludedProducts atualizada para preservar ordem original dos produtos
 function renderIncludedProducts() {
   console.log("render iniciado");
-
-  let formulaCache = {
-    priceFormula: {},
-    costFormula: {},
-    adjustedQuantityFormula: {}
-  };
-
-  ["priceFormula", "costFormula", "adjustedQuantityFormula"].forEach(type => {
-    document.querySelectorAll(`.formula-input[data-type='${type}']`).forEach(el => {
-      const index = el.dataset.index;
-      if (index) formulaCache[type][index] = el.dataset.rawFormula || el.innerText.trim();
-    });
-  });
 
   const container = document.getElementById("included-products-container");
   if (!container) return;
   container.innerHTML = "";
 
   const groupedProducts = {};
-
-  includedProducts.forEach((product, index) => {
+  includedProducts.forEach((product) => {
     if (!product.class) return;
     if (!groupedProducts[product.class]) groupedProducts[product.class] = [];
-
-    ["priceFormula", "costFormula", "adjustedQuantityFormula"].forEach(type => {
-      if (formulaCache[type][index]) {
-        product[type] = formulaCache[type][index];
-      }
-    });
-
-    groupedProducts[product.class].push({ ...product, index });
+    groupedProducts[product.class].push(product);
   });
 
   const formatarReal = v => `R$ ${parseFloat(v || 0).toFixed(2)}`;
@@ -876,57 +829,42 @@ function renderIncludedProducts() {
     const grupoId = `grupo-${className.replace(/\s+/g, '-').toLowerCase()}`;
     wrapper.setAttribute("data-group", grupoId);
 
+    // 🔘 Título e botões do grupo
     const label = document.createElement("h3");
     const titulo = document.createElement("strong");
     titulo.textContent = className;
     label.appendChild(titulo);
 
-    const infoButton = document.createElement("button");
-    infoButton.className = "info-button";
-    infoButton.dataset.group = grupoId;
-    infoButton.style.marginLeft = "8px";
-    infoButton.textContent = "?";
-    infoButton.addEventListener("click", () => abrirPopup(grupoId, className));
-    label.appendChild(infoButton);
+    const botao = (texto, classe, title, evento) => {
+      const btn = document.createElement("button");
+      btn.className = classe;
+      btn.textContent = texto;
+      btn.style.marginLeft = "4px";
+      if (title) btn.title = title;
+      btn.dataset.group = grupoId;
+      btn.addEventListener("click", evento);
+      return btn;
+    };
 
-    const moneyButton = document.createElement("button");
-    moneyButton.className = "money-button";
-    moneyButton.dataset.group = grupoId;
-    moneyButton.style.marginLeft = "4px";
-    moneyButton.textContent = "$";
-    moneyButton.addEventListener("click", () => {
-      const tabela = wrapper.querySelector("table");
-      if (!tabela) return;
-
-      const custoTotalElement = tabela.querySelector("tr.total-row > td:nth-child(2) > strong");
-      if (!custoTotalElement) return;
-
-      let custoMaterialBase = custoTotalElement.textContent.trim().replace("R$", "").replace(",", ".").trim();
-      custoMaterialBase = parseFloat(custoMaterialBase);
-      if (isNaN(custoMaterialBase)) custoMaterialBase = 0;
-
-      const custos = calcularValoresGrupo(grupoId, custoMaterialBase);
+    label.appendChild(botao("?", "info-button", null, () => abrirPopup(grupoId, className)));
+    label.appendChild(botao("$", "money-button", null, () => {
+      const custoTotal = groupPopupsData[grupoId]?.custo_total || 0;
+      const custos = calcularValoresGrupo(grupoId, custoTotal);
       abrirPopupValores(custos);
-    });
-    label.appendChild(moneyButton);
-
-    const duplicarButton = document.createElement("button");
-    duplicarButton.className = "duplicate-button";
-    duplicarButton.dataset.group = grupoId;
-    duplicarButton.style.marginLeft = "4px";
-    duplicarButton.textContent = "⧉";
-    duplicarButton.title = "Duplicar grupo";
-    duplicarButton.addEventListener("click", () => duplicarGrupo(className));
-    label.appendChild(duplicarButton);
+    }));
+    label.appendChild(botao("⧉", "duplicate-button", "Duplicar grupo", () => duplicarGrupo(className)));
 
     wrapper.appendChild(label);
 
+    // 🧾 Tabela do grupo
     const table = document.createElement("table");
     table.classList.add("included-group-table");
     table.innerHTML = `
       <thead>
         <tr>
-          <th>Produto</th>
+          <th>Ordem</th>
+          <th>Utilização</th>
+          <th>Descrição</th>
           <th>Valor de Custo Final</th>
           <th>Custo de Material Base</th>
           <th>Quantidade</th>
@@ -940,41 +878,35 @@ function renderIncludedProducts() {
     `;
 
     const tbody = table.querySelector("tbody");
+    let totalCost = 0, totalPrice = 0, totalQtd = 0, totalVendaFormula = 0, totalCustoFormula = 0;
 
-    let totalPrice = 0;
-    let totalCost = 0;
-    let totalQtd = 0;
-    let totalVendaFormula = 0;
-    let totalCustoFormula = 0;
+    const ordemBaseInput = document.querySelector(`#grupo-checkboxes input[data-class="${className}"]`);
+    const ordemBase = ordemBaseInput ? parseInt(ordemBaseInput.value) : 1;
 
-    groupedProducts[className].forEach(product => {
+    groupedProducts[className].forEach((product, i) => {
       const context = { ...product, groupId: grupoId };
 
-      let quantidadeDesejada = 1;
+      let quantidadeDesejada = product.adjustedQuantity || 1;
       if (product.adjustedQuantityFormula) {
         try {
           quantidadeDesejada = evaluateFormula(product.adjustedQuantityFormula, context);
-        } catch {
-          quantidadeDesejada = 1;
-        }
-      } else if (product.adjustedQuantity !== undefined) {
-        quantidadeDesejada = product.adjustedQuantity;
+        } catch {}
       }
-
-      context.adjustedQuantity = quantidadeDesejada;
-      product.adjustedQuantity = quantidadeDesejada;
-      product.quantity = quantidadeDesejada; // 🔁 sincronia total
-
-      const quantidade = quantidadeDesejada;
-      context.quantity = quantidade;
 
       const cost = parseFloat(product.cost || 0);
       const price = parseFloat(product.price || 0);
+      const valorVenda = evaluateFormula(product.priceFormula || "0", context) * quantidadeDesejada;
+      const valorCusto = evaluateFormula(product.costFormula || "0", context) * quantidadeDesejada;
 
-      const valorVenda = evaluateFormula(product.priceFormula || "0", context) * quantidade;
-      const valorCusto = evaluateFormula(product.costFormula || "0", context) * quantidade;
       totalVendaFormula += valorVenda;
       totalCustoFormula += valorCusto;
+      totalCost += cost * quantidadeDesejada;
+      totalPrice += price * quantidadeDesejada;
+      totalQtd += quantidadeDesejada;
+
+      const parteY = product.ordem?.split(".")[1] || (i + 1);
+      const ordemCompleta = `${ordemBase}.${parteY}`;
+      product.ordem = ordemCompleta; // preserva no objeto
 
       const row = document.createElement("tr");
       row.setAttribute("draggable", "true");
@@ -983,40 +915,40 @@ function renderIncludedProducts() {
       row.dataset.class = product.class;
 
       row.innerHTML = `
-        <td>${product.name}</td>
-        <td><div>${formatarReal(cost * quantidade)}</div></td>
+        <td><div contenteditable="true" class="ordem-cell">${ordemCompleta}</div></td>
+        <td contenteditable="true" class="editable-utilizacao">${product.utilizacao || ""}</td>
+        <td contenteditable="true" class="editable-descricao">${product.name || ""}</td>
+        <td><div>${formatarReal(cost * quantidadeDesejada)}</div></td>
         <td><div>${formatarReal(price)}</div></td>
-        <td><div class="quantity-cell" contenteditable="true" data-index="${product.index}">${quantidade}</div></td>
+        <td><div class="quantity-cell" contenteditable="true" data-index="${product.index}">${quantidadeDesejada}</div></td>
         <td>
-          <div class="formula-input" contenteditable="true" data-index="${product.index}" data-type="priceFormula" data-raw-formula="${product.priceFormula || ''}" style="display: none;">${product.priceFormula || ''}</div>
-          <div class="formula-result" data-index="${product.index}" data-type="priceFormula" style="cursor: pointer;"></div>
+          <div class="formula-input" contenteditable="true" data-index="${product.index}" data-type="priceFormula" data-raw-formula="${product.priceFormula || ''}" style="display:none;">${product.priceFormula || ''}</div>
+          <div class="formula-result" data-index="${product.index}" data-type="priceFormula" style="cursor:pointer;"></div>
         </td>
-        <td><div>${product.codigo_produto || product.costFormula || "-"}</div></td>
+        <td><div>${product.codigo_produto || "-"}</div></td>
         <td>
-          <div class="formula-input" contenteditable="true" data-index="${product.index}" data-type="adjustedQuantityFormula" data-raw-formula="${product.adjustedQuantityFormula || ''}" style="display: none;">${product.adjustedQuantityFormula || ''}</div>
-          <div class="formula-result" data-index="${product.index}" data-type="adjustedQuantityFormula" style="cursor: pointer;"></div>
+          <div class="formula-input" contenteditable="true" data-index="${product.index}" data-type="adjustedQuantityFormula" data-raw-formula="${product.adjustedQuantityFormula || ''}" style="display:none;">${product.adjustedQuantityFormula || ''}</div>
+          <div class="formula-result" data-index="${product.index}" data-type="adjustedQuantityFormula" style="cursor:pointer;"></div>
         </td>
-        <td>
-          <button class="remove-product" data-index="${product.index}" onclick="removeProduct(${product.index})">Remover</button>
-        </td>
+        <td><button class="remove-product" data-index="${product.index}" onclick="removeProduct(${product.index})">Remover</button></td>
       `;
 
-      tbody.appendChild(row);
-
+      // Eventos para campos editáveis
+      row.querySelector(".editable-utilizacao")?.addEventListener("blur", e => {
+        product.utilizacao = e.target.innerText.trim();
+      });
+      row.querySelector(".editable-descricao")?.addEventListener("blur", e => {
+        product.name = e.target.innerText.trim();
+      });
       const qtdCell = row.querySelector(".quantity-cell");
       if (qtdCell) {
         qtdCell.addEventListener("blur", () => {
           const newQtd = parseFloat(qtdCell.innerText.trim().replace(",", "."));
-          const valorFinal = !isNaN(newQtd) && newQtd >= 0 ? newQtd : 1;
-
-          if (includedProducts[product.index]) {
-            includedProducts[product.index].quantity = valorFinal;
-            includedProducts[product.index].adjustedQuantity = valorFinal;
-          }
-
+          const finalQtd = !isNaN(newQtd) && newQtd >= 0 ? newQtd : 1;
+          product.quantity = finalQtd;
+          product.adjustedQuantity = finalQtd;
           renderIncludedProducts();
         });
-
         qtdCell.addEventListener("keydown", e => {
           if (e.key === "Enter") {
             e.preventDefault();
@@ -1025,11 +957,9 @@ function renderIncludedProducts() {
         });
       }
 
-      const editableTypes = ["priceFormula", "adjustedQuantityFormula"];
-      editableTypes.forEach(type => {
+      ["priceFormula", "adjustedQuantityFormula"].forEach(type => {
         const input = row.querySelector(`.formula-input[data-type='${type}']`);
         const display = row.querySelector(`.formula-result[data-type='${type}']`);
-
         if (input && display) {
           try {
             display.innerText = evaluateFormula(product[type] || "0", context);
@@ -1061,11 +991,10 @@ function renderIncludedProducts() {
             display.style.display = "block";
 
             if (type === "adjustedQuantityFormula") {
-              const valorFinal = parseFloat(result);
-              if (!isNaN(valorFinal)) {
-                product.adjustedQuantity = valorFinal;
-                product.quantity = valorFinal;
-
+              const parsed = parseFloat(result);
+              if (!isNaN(parsed)) {
+                product.adjustedQuantity = parsed;
+                product.quantity = parsed;
                 renderIncludedProducts();
               }
             }
@@ -1080,56 +1009,43 @@ function renderIncludedProducts() {
         }
       });
 
-      totalCost += cost * quantidade;
-      totalPrice += price * quantidade;
-      totalQtd += quantidade;
-
       addDragAndDrop(row, className);
+      tbody.appendChild(row);
     });
 
-    if (!window.groupPopupsData) window.groupPopupsData = {};
-    if (!groupPopupsData[grupoId]) groupPopupsData[grupoId] = {};
+    groupPopupsData[grupoId] = groupPopupsData[grupoId] || {};
     groupPopupsData[grupoId].custo_total = totalCost;
     groupPopupsData[grupoId].preco_total = totalPrice;
     groupPopupsData[grupoId].qtd_total = totalQtd;
 
+    const custosCalculados = calcularValoresGrupo(grupoId, totalCost);
+    const precoSugeridoTexto = custosCalculados.precoSugerido || "R$ 0.00";
+
     const totalRow = document.createElement("tr");
-    totalRow.classList.add("total-row");
+    totalRow.classList.add("extra-summary-row");
     totalRow.innerHTML = `
-      <td><strong>Total (${className})</strong></td>
-      <td><strong>${formatarReal(totalCost)}</strong></td>
-      <td><strong></strong></td>
-      <td><strong>${totalQtd}</strong></td>
-      <td><strong>${formatarReal(totalVendaFormula)}</strong></td>
-      <td><strong>${formatarReal(totalCustoFormula)}</strong></td>
-      <td colspan="2"></td>
+      <td colspan="2"><strong>Total:</strong></td>
+      <td colspan="8"><div class="formula-result" style="font-weight: bold;">${precoSugeridoTexto}</div></td>
     `;
     tbody.appendChild(totalRow);
 
-    const extraRow = document.createElement("tr");
-    extraRow.classList.add("extra-summary-row");
+    const linhas = tbody.querySelectorAll("tr.draggable");
+    const nomeProduto1 = linhas[0]?.children[2]?.textContent.trim() || "Produto 1";
+    const nomeProduto2 = linhas[1]?.children[2]?.textContent.trim() || "Produto 2";
 
-    let groupFormula = groupPopupsData[grupoId]?.groupSaleFormula || "";
-    let formulaResult;
-    try {
-      formulaResult = evaluateFormula(groupFormula || totalVendaFormula.toString(), {
-        custo_total: totalCost,
-        preco_total: totalPrice,
-        qtd_total: totalQtd,
-        groupId: grupoId
-      });
-    } catch {
-      formulaResult = "Erro";
-    }
+    const textoObservacao = ` ${nomeProduto1}; em nome ${nomeProduto2}\nAltura final:\nAltura do Montante:`;
+    groupPopupsData[grupoId].observacoes = textoObservacao;
 
-    extraRow.innerHTML = `
-      <td colspan="6" style="text-align: right;"><strong>Custo de Material Base:</strong></td>
-      <td colspan="2">
-        <div class="formula-input" contenteditable="true" data-type="groupSaleFormula" style="display: none;">${groupFormula}</div>
-        <div class="formula-result" style="cursor: pointer;">${formatarReal(formulaResult)}</div>
-      </td>
+    const observacoesRow = document.createElement("tr");
+    observacoesRow.innerHTML = `
+      <td colspan="2"><strong>Observações:</strong></td>
+      <td colspan="8" contenteditable="true" class="editable-observacoes">${textoObservacao.replace(/\n/g, "<br>")}</td>
     `;
-    tbody.appendChild(extraRow);
+    tbody.appendChild(observacoesRow);
+
+    observacoesRow.querySelector(".editable-observacoes")?.addEventListener("blur", e => {
+      groupPopupsData[grupoId].observacoes = e.target.innerText.trim();
+    });
 
     wrapper.appendChild(table);
     container.appendChild(wrapper);
@@ -1137,11 +1053,18 @@ function renderIncludedProducts() {
 
   atualizarListaDeGrupos();
   atualizarValorFinalFooter();
+  aplicarOrdemGrupos();
 }
 
+  
+//Engenheiro(a)
+//Arquiteto(a)
+//Unidade de medida da Unidade
+//Prazos Previsto por Área:
+//Utilização para quantidade e unidade de medida da unidade
+//Editar o nome da area
+//Numero da pagina
 
-  
-  
   
     
     
@@ -1177,49 +1100,42 @@ window.renderIncludedProducts = renderIncludedProducts;
     
     
     
+function addDragAndDrop(row, className) {
+  row.addEventListener("dragstart", (event) => {
+    event.dataTransfer.setData("index", row.dataset.index);
+    event.dataTransfer.setData("class", className);
+  });
 
-    function addDragAndDrop(row, className) {
-        row.addEventListener("dragstart", (event) => {
-            event.dataTransfer.setData("index", row.dataset.index);
-            event.dataTransfer.setData("class", className);
-        });
+  row.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    const draggedClass = event.dataTransfer.getData("class");
+    if (draggedClass !== className) return;
+  });
 
-        row.addEventListener("dragover", (event) => {
-            event.preventDefault();
-            const draggedClass = event.dataTransfer.getData("class");
-            if (draggedClass !== className) {
-                return;
-            }
-        });
+  row.addEventListener("drop", (event) => {
+    event.preventDefault();
 
-        row.addEventListener("drop", (event) => {
-            event.preventDefault();
-            const fromIndex = parseInt(event.dataTransfer.getData("index"));
-            const fromClass = event.dataTransfer.getData("class");
+    const fromIndex = parseInt(event.dataTransfer.getData("index"));
+    const toRow = event.target.closest("tr");
+    const toIndex = parseInt(toRow?.dataset.index);
 
-            const toRow = event.target.closest("tr");
-            if (!toRow || !toRow.dataset.index) return;
+    if (isNaN(fromIndex) || isNaN(toIndex)) return;
 
-            const toIndex = parseInt(toRow.dataset.index);
-            const toClass = toRow.dataset.class;
+    const posOriginal = includedProducts.findIndex(p => p.index === fromIndex);
+    const posDestino = includedProducts.findIndex(p => p.index === toIndex);
 
-            if (fromClass !== toClass) {
-                return;
-            }
+    if (posOriginal === -1 || posDestino === -1 || posOriginal === posDestino) return;
 
-            const fromProduct = includedProducts.find(p => p.index == fromIndex);
-            const toProductIndex = includedProducts.findIndex(p => p.index == toIndex);
+    const produtoMovido = includedProducts.splice(posOriginal, 1)[0];
+    includedProducts.splice(posDestino, 0, produtoMovido);
 
-            if (fromProduct && toProductIndex >= 0 && fromProduct.index !== toIndex) {
-                includedProducts = includedProducts.filter(p => p.index !== fromIndex);
-                includedProducts.splice(toProductIndex, 0, fromProduct);
-                renderIncludedProducts();
-            }
-        });
-    }
+    renderIncludedProducts();
+  });
+}
+
 
     productSearch.addEventListener("input", filterProducts);
-    classFilter.addEventListener("change", filterProducts);
+   // classFilter.addEventListener("change", filterProducts);
 
 
 
@@ -1277,7 +1193,7 @@ function calcularSomaTotal(produtoRemovido = null) {
   
 
 // Evento para recalcular ao mudar a opção do select
-document.getElementById("field1").addEventListener("change", function () {
+/* document.getElementById("field1").addEventListener("change", function () {
     if (this.value === "sim") {
         calcularSomaTotal(); // Chama a função para somar os valores
     } else {
@@ -1291,28 +1207,35 @@ document.getElementById("field1").addEventListener("change", function () {
 //Salvar Produto Base
 
 document.getElementById('save-proposal').addEventListener('click', salvarProdutoBase);
-
-async function salvarProdutoBase() {
-  console.log("Criar Proposta");
+*/
+async function salvarProdutoBase1() {
+  console.log("📝 Iniciando salvamento da proposta...");
 
   try {
     const grupos = [];
 
-    document.querySelectorAll(".grupo-tabela").forEach(grupoEl => {
+    document.querySelectorAll(".grupo-tabela").forEach((grupoEl, ordemGrupo) => {
       const grupoId = grupoEl.dataset.group || "grupo-sem-nome";
-     const nomeGrupo = grupoId.replace("grupo-", "") || "Sem nome";
+      const nomeGrupo = grupoId.replace("grupo-", "") || "Sem nome";
 
       const itens = [];
-      grupoEl.querySelectorAll("tbody tr.draggable").forEach(row => {
-        const nomeProduto = row.children[0]?.textContent.trim() || "";
-        const valorCusto = row.children[1]?.innerText.trim().replace("R$", "").replace(",", ".") || "0";
-        const valorVenda = row.children[2]?.innerText.trim().replace("R$", "").replace(",", ".") || "0";
-        const quantidade = row.children[3]?.innerText.trim().replace(",", ".") || "1";
-        const codigo_omie = row.children[5]?.innerText.trim().replace(",", ".") || "1";
+      grupoEl.querySelectorAll("tbody tr.draggable").forEach((row, ordemProduto) => {
+        const nomeProduto = row.children[0]?.textContent.trim();
+        if (!nomeProduto) return; // Ignora produtos sem nome
+
+        const valorCustoRaw = row.children[1]?.innerText.trim() || "0";
+        const valorVendaRaw = row.children[2]?.innerText.trim() || "0";
+        const quantidadeRaw = row.children[3]?.innerText.trim() || "1";
+        const codigo_omie = row.children[6]?.innerText.trim() || "";
+
+        const valorCusto = parseFloat(valorCustoRaw.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
+        const valorVenda = parseFloat(valorVendaRaw.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
+        const quantidade = parseFloat(quantidadeRaw.replace(/[^\d,.-]/g, "").replace(",", ".")) || 1;
+
         const formulaPreco = row.querySelector(`.formula-input[data-type="priceFormula"]`)?.dataset.rawFormula || "";
         const formulaQtd = row.querySelector(`.formula-input[data-type="adjustedQuantityFormula"]`)?.dataset.rawFormula || "";
 
-         itens.push({
+        itens.push({
           nome_produto: nomeProduto,
           preco: valorVenda,
           custo: valorCusto,
@@ -1321,9 +1244,15 @@ async function salvarProdutoBase() {
           valor_custo: valorCusto,
           formula_preco: formulaPreco,
           formula_quantidade: formulaQtd,
-          codigo_omie: codigo_omie // ✅ Salvo corretamente
+          codigo_omie,
+          grupo: nomeGrupo,
+          ordemGrupo,
+          ordemProduto
         });
       });
+
+      // Ignora grupos vazios
+      if (!itens.length) return;
 
       const parametros = groupPopupsData?.[grupoId] || {};
       const formulaFinalGroup = grupoEl.querySelector(".formula-input[data-type='groupSaleFormula']")?.innerText.trim() || "";
@@ -1331,26 +1260,49 @@ async function salvarProdutoBase() {
 
       grupos.push({
         nome: nomeGrupo,
+        ordem: ordemGrupo,
         parametros,
         itens
       });
     });
 
+    // FORMULÁRIO
     const camposFormulario = {
+      numeroOrcamento: document.getElementById("numeroOrcamento")?.value || "",
+      dataOrcamento: document.getElementById("dataOrcamento")?.value || "",
+      origemCliente: document.getElementById("origemCliente")?.value || "",
+      nomeOrigem: document.getElementById("nomeOrigem")?.value || "",
+      codigoOrigem: document.getElementById("codigoOrigem")?.value || "",
+      telefoneOrigem: document.getElementById("telefoneOrigem")?.value || "",
+      emailOrigem: document.getElementById("emailOrigem")?.value || "",
+      comissaoArquiteto: parseFloat(document.getElementById("comissaoArquiteto")?.value || "0"),
       nomeCliente: document.getElementById("nome")?.value || "",
       cpfCnpj: document.getElementById("cpfCnpj")?.value || "",
       endereco: document.getElementById("endereco")?.value || "",
-      idClienteOmie: document.getElementById("idClienteOmie")?.value || "",
-      descricao: document.getElementById("descricao")?.value || "",
       numeroComplemento: document.getElementById("numeroComplemento")?.value || "",
       enderecoEntrega: document.getElementById("enderecoEntrega")?.value || "",
       telefone: document.getElementById("telefone")?.value || "",
       arquiteto: document.getElementById("arquiteto")?.value || "",
-      codigoArquiteto: document.getElementById("codigo_arqeuiteto")?.value || "",
+      codigoArquiteto: document.getElementById("codigoArquiteto")?.value || "",
+      idClienteOmie: document.getElementById("idClienteOmie")?.value || "",
       dataEntrega: document.getElementById("dataEntrega")?.value || "",
       vendedor: document.getElementById("selectVendedor")?.value || "",
       tipoPagamento: document.getElementById("tipoPagamento")?.value || "",
-      desconto: parseFloat(document.getElementById("desconto")?.value || "0")
+      desconto: parseFloat(document.getElementById("desconto")?.value || "0"),
+      descricao: document.getElementById("descricao")?.value || "",
+      cep: document.getElementById("cep")?.value || "",
+      rua: document.getElementById("rua")?.value || "",
+      numero: document.getElementById("numero")?.value || "",
+      complemento: document.getElementById("complemento")?.value || "",
+      bairro: document.getElementById("bairro")?.value || "",
+      cidade: document.getElementById("cidade")?.value || "",
+      estado: document.getElementById("estado")?.value || "",
+      vendedorResponsavel: document.getElementById("vendedorResponsavel")?.value || "",
+      operadorInterno: document.getElementById("operadorInterno")?.value || "",
+      produtosValores: document.getElementById("produtosValores")?.value || "",
+      prazosArea: document.getElementById("prazosArea")?.value || "",
+      condicaoPagamento: document.getElementById("condicaoPagamento")?.value || "",
+      condicoesGerais: document.getElementById("condicoesGerais")?.value || ""
     };
 
     const nomeProposta = grupos[0]?.itens?.[0]?.nome_produto || "Sem nome";
@@ -1362,27 +1314,29 @@ async function salvarProdutoBase() {
       grupos
     };
 
-    const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/propostas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(proposta)
-    });
+    console.log("📦 Proposta montada:", proposta);
+    alert("📤 Proposta montada com sucesso! Verifique o console.");
 
-    const resultado = await resposta.json();
+    // Envio desativado por enquanto
+    // const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/propostas", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(proposta)
+    // });
 
-    if (!resposta.ok) throw new Error("Erro: " + JSON.stringify(resultado));
+    // const resultado = await resposta.json();
+    // if (!resposta.ok) throw new Error("Erro: " + JSON.stringify(resultado));
 
-    alert("✅ Proposta salva com sucesso!");
-    console.log("📦 Dados enviados:", proposta);
-    console.log("🆔 ID da proposta:", resultado._id);
-
-    return resultado;
+    return proposta;
   } catch (err) {
     console.error("❌ Erro ao salvar proposta:", err);
     alert("Erro ao salvar proposta: " + err.message);
     return null;
   }
 }
+
+
+
 
 
 async function salvarProdutoModelo() {
@@ -1526,48 +1480,354 @@ function preencherProdutoBase(dados) {
     console.log(dados);
 }
 
+// 🔁 Inicializa variável global apenas em memória
+window.grupoConfiguracoes = window.grupoConfiguracoes || [];
 
+/**
+ * 🔍 Captura os valores numéricos (ordemBase) da interface
+ */
+function obterConfiguracoesDeGrupos() {
+  const configuracoes = [];
+
+  const grupoElements = document.querySelectorAll("#grupo-checkboxes .grupo-item");
+
+  grupoElements.forEach(el => {
+    const className = el.getAttribute("data-class");
+    const inputOrdem = el.querySelector(`input[type="number"][data-class="${className}"]`);
+
+    if (inputOrdem) {
+      configuracoes.push({
+        nome: className,
+        ordemBase: parseInt(inputOrdem.value) || 1
+      });
+    }
+  });
+
+  window.grupoConfiguracoes = configuracoes;
+  return configuracoes;
+}
+
+/**
+ * ♻️ Restaura apenas os valores numéricos (ordemBase) na interface
+ */
+function restaurarConfiguracoesDeGrupos() {
+  const configuracoes = window.grupoConfiguracoes || [];
+
+  configuracoes.forEach(({ nome, ordemBase }) => {
+    const inputOrdem = document.querySelector(`#grupo-checkboxes input[type="number"][data-class="${nome}"]`);
+    if (inputOrdem) inputOrdem.value = ordemBase;
+  });
+}
+
+/**
+ * 🔢 Atualiza a coluna .ordem-cell com base nas configurações salvas
+ */
+function atualizarOrdemDasTabelas(configuracoes) {
+  configuracoes.forEach(({ nome, ordemBase }) => {
+    const tabelaGrupo = document.querySelector(`.grupo-tabela[data-group="grupo-${nome}"]`);
+    if (!tabelaGrupo) return;
+
+    const linhas = tabelaGrupo.querySelectorAll("tbody tr.draggable");
+    linhas.forEach((linha, i) => {
+      const cellOrdem = linha.querySelector(".ordem-cell");
+      if (cellOrdem) {
+        cellOrdem.innerText = `${ordemBase}.${i + 1}`;
+      }
+    });
+  });
+}
+
+/**
+ * 🔘 Captura + aplica configurações (apenas ordemBase)
+ */
+function aplicarOrdemGrupos() {
+  const configuracoes = obterConfiguracoesDeGrupos();
+  atualizarOrdemDasTabelas(configuracoes);
+}
 
 function atualizarListaDeGrupos() {
-    const container = document.getElementById("grupo-checkboxes");
-    if (!container) return;
+  const container = document.getElementById("grupo-checkboxes");
+  if (!container) return;
 
-    container.innerHTML = "";
+  container.innerHTML = "";
+  container.style.display = "grid";
+  container.style.gridTemplateColumns = "repeat(4, 1fr)";
+  container.style.gap = "12px";
+  container.style.alignItems = "start";
 
-    const gruposUnicos = [...new Set(includedProducts.map(p => p.class))];
+  const gruposVisiveis = new Set(
+    Array.from(document.querySelectorAll(".grupo-tabela"))
+      .map(t => t.dataset.group?.replace("grupo-", ""))
+      .filter(Boolean)
+  );
 
-    gruposUnicos.forEach(className => {
-        const grupoId = `grupo-${className.replace(/\s+/g, '-')}`;
-        
-        // Cria checkbox para exibir/ocultar grupo
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = grupoId;
-        checkbox.checked = true;
+  const gruposUnicos = [...new Set(includedProducts.map(p => p.class))]
+    .filter(grupo => gruposVisiveis.has(grupo));
 
-        // Controla exibição da tabela do grupo
-        checkbox.addEventListener("change", () => {
-            const tabelaGrupo = document.querySelector(`[data-group="${grupoId}"]`);
-            if (tabelaGrupo) {
-                tabelaGrupo.style.display = checkbox.checked ? "block" : "none";
-            }
-        });
+  const configuracoes = window.grupoConfiguracoes || [];
+  const haCheckboxMarcado = configuracoes.length > 0 ? configuracoes.some(c => c.checkboxMarcado) : true;
 
-        // Cria label
-        const label = document.createElement("label");
-        label.setAttribute("for", grupoId);
-        label.innerText = className;
+  // 🔍 Barra de pesquisa
+  const searchWrapper = document.createElement("div");
+  searchWrapper.style.gridColumn = "span 4";
+  searchWrapper.style.display = "flex";
+  searchWrapper.style.justifyContent = "space-between";
+  searchWrapper.style.alignItems = "center";
+  searchWrapper.style.gap = "12px";
+  searchWrapper.style.marginBottom = "8px";
 
-        const linha = document.createElement("div");
-        linha.appendChild(checkbox);
-        linha.appendChild(label);
-        linha.style.display = "flex";
-        linha.style.alignItems = "center";
-        linha.style.gap = "8px";
+  const inputPesquisa = document.createElement("input");
+  inputPesquisa.type = "text";
+  inputPesquisa.placeholder = "Pesquisar grupo...";
+  inputPesquisa.style.flex = "1";
+  inputPesquisa.style.padding = "6px 10px";
+  inputPesquisa.style.border = "1px solid #ccc";
+  inputPesquisa.style.borderRadius = "6px";
 
-        container.appendChild(linha);
+  const filtroSelect = document.createElement("select");
+  filtroSelect.innerHTML = `
+    <option value="todos">Todos</option>
+    <option value="marcados">Marcados</option>
+    <option value="desmarcados">Desmarcados</option>
+  `;
+  filtroSelect.style.padding = "6px 10px";
+  filtroSelect.style.border = "1px solid #ccc";
+  filtroSelect.style.borderRadius = "6px";
+
+  const botoesWrapper = document.createElement("div");
+  botoesWrapper.style.gridColumn = "span 4";
+  botoesWrapper.style.display = "flex";
+  botoesWrapper.style.justifyContent = "space-between";
+  botoesWrapper.style.gap = "8px";
+  botoesWrapper.style.marginBottom = "8px";
+
+  const btnMarcar = document.createElement("button");
+  btnMarcar.textContent = "Marcar todos";
+  btnMarcar.className = "botao-marcar";
+  btnMarcar.style.flex = "1";
+  btnMarcar.addEventListener("click", () => {
+    document.querySelectorAll("#grupo-checkboxes input[type='checkbox']").forEach(cb => {
+      cb.checked = true;
+      const className = cb.getAttribute("data-class");
+      const grupoTabela = document.querySelector(`.grupo-tabela[data-group="grupo-${className}"]`);
+      if (grupoTabela) grupoTabela.style.display = "block";
     });
+  });
+
+  const btnDesmarcar = document.createElement("button");
+  btnDesmarcar.textContent = "Desmarcar todos";
+  btnDesmarcar.className = "botao-desmarcar";
+  btnDesmarcar.style.flex = "1";
+  btnDesmarcar.addEventListener("click", () => {
+    document.querySelectorAll("#grupo-checkboxes input[type='checkbox']").forEach(cb => {
+      cb.checked = false;
+      const className = cb.getAttribute("data-class");
+      const grupoTabela = document.querySelector(`.grupo-tabela[data-group="grupo-${className}"]`);
+      if (grupoTabela) grupoTabela.style.display = "none";
+    });
+  });
+
+  botoesWrapper.appendChild(btnMarcar);
+  botoesWrapper.appendChild(btnDesmarcar);
+
+  searchWrapper.appendChild(inputPesquisa);
+  searchWrapper.appendChild(filtroSelect);
+  container.appendChild(searchWrapper);
+  container.appendChild(botoesWrapper);
+
+  const dropTop = document.createElement("div");
+  dropTop.style.gridColumn = "span 4";
+  dropTop.style.height = "20px";
+  dropTop.style.border = "2px dashed #ccc";
+  dropTop.style.borderRadius = "6px";
+  dropTop.style.marginBottom = "10px";
+  dropTop.style.textAlign = "center";
+  dropTop.style.color = "#888";
+  dropTop.innerText = "Solte aqui para mover para o topo";
+
+  dropTop.addEventListener("dragover", e => e.preventDefault());
+  dropTop.addEventListener("drop", e => {
+    e.preventDefault();
+    const draggedClass = e.dataTransfer.getData("text/plain");
+    const draggedElement = container.querySelector(`[data-class="${draggedClass}"]`);
+    if (draggedElement) {
+      container.insertBefore(draggedElement, dropTop.nextSibling);
+      reordenarTabelasPorGrupoVisual();
+    }
+  });
+  container.appendChild(dropTop);
+
+  gruposUnicos.forEach(className => {
+    const linha = document.createElement("div");
+    linha.classList.add("grupo-item");
+    linha.setAttribute("draggable", "true");
+    linha.setAttribute("data-class", className);
+    linha.style.display = "flex";
+    linha.style.alignItems = "center";
+    linha.style.gap = "8px";
+    linha.style.padding = "10px 12px";
+    linha.style.border = "1px solid #ddd";
+    linha.style.borderRadius = "8px";
+    linha.style.background = "#fff";
+    linha.style.boxShadow = "0 2px 6px rgba(0,0,0,0.06)";
+    linha.style.cursor = "grab";
+    linha.dataset.originalText = className.toLowerCase();
+
+    linha.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", className);
+      e.dataTransfer.effectAllowed = "move";
+      linha.style.opacity = "0.5";
+    });
+
+    linha.addEventListener("dragend", () => {
+      linha.style.opacity = "1";
+    });
+
+    linha.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      linha.style.background = "#eef";
+    });
+
+    linha.addEventListener("dragleave", () => {
+      linha.style.background = "#fff";
+    });
+
+    linha.addEventListener("drop", (e) => {
+      e.preventDefault();
+      linha.style.background = "#fff";
+      const draggedClass = e.dataTransfer.getData("text/plain");
+      const draggedElement = container.querySelector(`[data-class="${draggedClass}"]`);
+      if (draggedElement && draggedElement !== linha) {
+        container.insertBefore(draggedElement, linha.nextSibling);
+        reordenarTabelasPorGrupoVisual();
+      }
+    });
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.setAttribute("data-class", className);
+    const grupoTabela = document.querySelector(`.grupo-tabela[data-group="grupo-${className}"]`);
+    const config = configuracoes.find(c => c.nome === className);
+    checkbox.checked = config ? config.checkboxMarcado !== false : true;
+    checkbox.style.width = "18px";
+    checkbox.style.height = "18px";
+    checkbox.style.accentColor = "#4a90e2";
+    checkbox.addEventListener("change", () => {
+      if (grupoTabela) {
+        grupoTabela.style.display = checkbox.checked ? "block" : "none";
+      }
+    });
+
+    const inputOrdem = document.createElement("input");
+    inputOrdem.type = "number";
+    inputOrdem.min = 1;
+    inputOrdem.value = config?.ordemBase || 1;
+    inputOrdem.title = "Número base do grupo";
+    inputOrdem.setAttribute("data-class", className);
+    inputOrdem.style.width = "60px";
+    inputOrdem.style.padding = "4px 6px";
+    inputOrdem.style.border = "1px solid #ccc";
+    inputOrdem.style.borderRadius = "4px";
+    inputOrdem.style.fontSize = "14px";
+    inputOrdem.addEventListener("input", () => {
+      aplicarOrdemGrupos();
+      reordenarTabelasPorGrupoVisual();
+    });
+
+    const label = document.createElement("label");
+    label.innerText = className;
+    label.style.whiteSpace = "nowrap";
+    label.style.flex = "1";
+    label.style.fontSize = "15px";
+
+    const botaoDuplicar = document.createElement("button");
+    botaoDuplicar.textContent = "🌀";
+    botaoDuplicar.title = "Duplicar grupo";
+    botaoDuplicar.style.border = "none";
+    botaoDuplicar.style.background = "none";
+    botaoDuplicar.style.cursor = "pointer";
+    botaoDuplicar.style.fontSize = "18px";
+    botaoDuplicar.style.marginLeft = "4px";
+    botaoDuplicar.addEventListener("click", () => {
+      duplicarGrupo(className);
+    });
+
+    linha.appendChild(checkbox);
+    linha.appendChild(inputOrdem);
+    linha.appendChild(label);
+    linha.appendChild(botaoDuplicar);
+    container.appendChild(linha);
+  });
+
+  inputPesquisa.addEventListener("input", () => {
+    const termo = inputPesquisa.value.trim().toLowerCase();
+    document.querySelectorAll("#grupo-checkboxes .grupo-item").forEach(item => {
+      const texto = item.dataset.originalText || "";
+      item.style.display = texto.includes(termo) ? "flex" : "none";
+    });
+  });
+
+  filtroSelect.addEventListener("change", () => {
+    const filtro = filtroSelect.value;
+    document.querySelectorAll("#grupo-checkboxes .grupo-item").forEach(item => {
+      const checkbox = item.querySelector("input[type='checkbox']");
+      if (filtro === "marcados") {
+        item.style.display = checkbox.checked ? "flex" : "none";
+      } else if (filtro === "desmarcados") {
+        item.style.display = !checkbox.checked ? "flex" : "none";
+      } else {
+        item.style.display = "flex";
+      }
+    });
+  });
+
+  restaurarConfiguracoesDeGrupos();
+  atualizarOrdemDasTabelas(window.grupoConfiguracoes || []);
 }
+
+
+
+
+function reordenarTabelasPorGrupoVisual() {
+  const containerPai = document.querySelector("#included-products-container");
+  if (!containerPai) return;
+
+  const ordemVisual = Array.from(document.querySelectorAll("#grupo-checkboxes .grupo-item"))
+    .map(div => div.getAttribute("data-class"));
+
+  const tabelas = Array.from(document.querySelectorAll(".grupo-tabela"));
+
+  ordemVisual.forEach(nomeGrupo => {
+    const tabela = tabelas.find(tb => tb.dataset.group === `grupo-${nomeGrupo}`);
+    if (tabela) {
+      containerPai.appendChild(tabela);
+    }
+  });
+}
+
+
+
+
+
+
+function reordenarTabelasPorGrupoVisual() {
+  const containerPai = document.querySelector("#included-products-container");
+  if (!containerPai) return;
+
+  const ordemVisual = Array.from(document.querySelectorAll("#grupo-checkboxes .grupo-item"))
+    .map(div => div.getAttribute("data-class"));
+
+  const tabelas = Array.from(document.querySelectorAll(".grupo-tabela"));
+
+  ordemVisual.forEach(nomeGrupo => {
+    const tabela = tabelas.find(tb => tb.dataset.group === `grupo-${nomeGrupo}`);
+    if (tabela) {
+      containerPai.appendChild(tabela); // move para o final
+    }
+  });
+}
+
+
 
 
 
@@ -1794,88 +2054,191 @@ async function carregarGruposCheckboxes() {
     }
   }
   
-  
+function duplicarGrupoSemRender(classNameOriginal) {
+  const grupoOriginal = includedProducts.filter(p => p.class === classNameOriginal);
+  if (grupoOriginal.length === 0) return;
 
-  function duplicarGrupo(classNameOriginal) {
-    const grupoOriginal = includedProducts.filter(p => p.class === classNameOriginal);
-    if (grupoOriginal.length === 0) return;
-  
-    // Extrai base do nome original (sem número)
-    const base = classNameOriginal.replace(/\s*\(\d+\)$/, '');
-  
-    // Verifica quantos já existem com mesmo base
-    const existentes = includedProducts.filter(p => p.class.startsWith(base));
-    const numeroNovo = existentes.reduce((max, p) => {
-      const match = p.class.match(/\((\d+)\)$/);
-      return match ? Math.max(max, parseInt(match[1])) : max;
-    }, 0) + 1;
-  
-    const novoNome = `${base} (${numeroNovo})`;
-    console.log(`🌀 Duplicando grupo: "${classNameOriginal}" → "${novoNome}"`);
-  
-    const novosProdutos = grupoOriginal.map((produto, i) => {
-      const copia = {
-        ...structuredClone(produto),
-        class: novoNome,
-        index: includedProducts.length + i,
-      };
-  
-      const index = produto.index;
-  
-      const priceFormulaEl = document.querySelector(`.formula-input[data-type="priceFormula"][data-index="${index}"]`);
-      const quantityFormulaEl = document.querySelector(`.formula-input[data-type="adjustedQuantityFormula"][data-index="${index}"]`);
-  
-      const formulaVenda = (priceFormulaEl?.dataset.rawFormula || priceFormulaEl?.textContent || '').trim();
-      const formulaQtd = (quantityFormulaEl?.dataset.rawFormula || quantityFormulaEl?.textContent || '').trim();
-  
-      copia.formula_venda = formulaVenda;
-      copia.formula_quantidade_desejada = formulaQtd;
-  
-      console.log(`🔁 Produto [${index}] duplicado para grupo "${novoNome}"`);
-      console.log(`   📌 fórmula_venda: "${formulaVenda}"`);
-      console.log(`   📌 formula_quantidade_desejada: "${formulaQtd}"`);
-  
-      return copia;
-    });
-  
-    const groupFormulaInput = document.querySelector(
-      `#included-products-container [data-class="${classNameOriginal}"] .extra-summary-row .formula-input[data-type="groupSaleFormula"]`
-    );
-    const formulaVendaFinal = groupFormulaInput?.textContent.trim() || "";
-  
-    console.log(`🧾 Valor final original: "${formulaVendaFinal}"`);
-  
-    if (!window.groupPopupsData) window.groupPopupsData = {};
-    groupPopupsData[novoNome] = {
-      ...(groupPopupsData[classNameOriginal] || {}),
-      formula_venda_final: formulaVendaFinal
+  const base = classNameOriginal.replace(/\s*\(\d+\)$/, '');
+  const existentes = includedProducts.filter(p => p.class.startsWith(base));
+  const numeroNovo = existentes.reduce((max, p) => {
+    const match = p.class.match(/\((\d+)\)$/);
+    return match ? Math.max(max, parseInt(match[1])) : max;
+  }, 0) + 1;
+
+  const novoNome = `${base} (${numeroNovo})`;
+  console.log(`🌀 Duplicando grupo: "${classNameOriginal}" → "${novoNome}"`);
+
+  const novosProdutos = grupoOriginal.map((produto, i) => {
+    const copia = {
+      ...structuredClone(produto),
+      class: novoNome,
+      index: includedProducts.length + i,
     };
-  
-    includedProducts.push(...novosProdutos);
-  
-    setTimeout(() => {
-      renderIncludedProducts();
-  
-      const container = document.querySelector('#included-products-container');
-      if (!container) return;
-  
-      const row = container.querySelector(`[data-class="${novoNome}"] .extra-summary-row`);
-      if (!row) return;
-  
-      const input = row.querySelector('.formula-input[data-type="groupSaleFormula"]');
-      if (input) {
-        input.textContent = formulaVendaFinal;
-        input.setAttribute('data-raw-formula', formulaVendaFinal);
-        console.log(`📥 Valor final colado:   "${formulaVendaFinal}"`);
-  
-        if (typeof evaluateFormula === "function") {
-          input.dispatchEvent(new Event('blur'));
-        }
-      }
-    }, 0);
+
+    const index = produto.index;
+
+    const priceFormulaEl = document.querySelector(`.formula-input[data-type="priceFormula"][data-index="${index}"]`);
+    const quantityFormulaEl = document.querySelector(`.formula-input[data-type="adjustedQuantityFormula"][data-index="${index}"]`);
+
+    const formulaVenda = (priceFormulaEl?.dataset.rawFormula || priceFormulaEl?.textContent || '').trim();
+    const formulaQtd = (quantityFormulaEl?.dataset.rawFormula || quantityFormulaEl?.textContent || '').trim();
+
+    copia.formula_venda = formulaVenda;
+    copia.formula_quantidade_desejada = formulaQtd;
+
+    return copia;
+  });
+
+  const groupFormulaInput = document.querySelector(
+    `#included-products-container [data-class="${classNameOriginal}"] .extra-summary-row .formula-input[data-type="groupSaleFormula"]`
+  );
+  const formulaVendaFinal = groupFormulaInput?.textContent.trim() || "";
+
+  if (!window.groupPopupsData) window.groupPopupsData = {};
+  groupPopupsData[novoNome] = {
+    ...(groupPopupsData[classNameOriginal] || {}),
+    formula_venda_final: formulaVendaFinal
+  };
+
+  includedProducts.push(...novosProdutos);
+
+  // Cria nova tabela para o grupo duplicado sem re-renderizar tudo
+  const container = document.getElementById("included-products-container");
+  if (!container) return;
+
+  const novaTabelaHTML = gerarTabelaHTMLParaGrupo(novoNome, novosProdutos);
+  container.insertAdjacentHTML("beforeend", novaTabelaHTML);
+
+  if (typeof ativarEventosTabela === "function") {
+    ativarEventosTabela(novoNome);
   }
-  
-  
+
+  adicionarGrupoAoPainelCheckboxes(novoNome);
+
+  const checkbox = document.querySelector(`#grupo-checkboxes [data-class="${novoNome}"]`);
+  if (checkbox) checkbox.checked = true;
+
+  const novaTabela = document.querySelector(`.grupo-tabela[data-group="grupo-${novoNome}"]`);
+  if (novaTabela) novaTabela.style.display = "block";
+
+  const input = document.querySelector(`.grupo-tabela[data-group="grupo-${novoNome}"] .formula-input[data-type="groupSaleFormula"]`);
+  if (input) {
+    input.textContent = formulaVendaFinal;
+    input.setAttribute("data-raw-formula", formulaVendaFinal);
+    if (typeof evaluateFormula === "function") {
+      input.dispatchEvent(new Event('blur'));
+    }
+  }
+}
+
+
+
+function adicionarGrupoAoPainelCheckboxes(className) {
+  const container = document.getElementById("grupo-checkboxes");
+  if (!container || document.querySelector(`[data-class="${className}"]`)) return;
+
+  const configuracoes = window.grupoConfiguracoes || [];
+  const config = configuracoes.find(c => c.nome === className);
+  const grupoTabela = document.querySelector(`.grupo-tabela[data-group="grupo-${className}"]`);
+
+  const linha = document.createElement("div");
+  linha.classList.add("grupo-item");
+  linha.setAttribute("draggable", "true");
+  linha.setAttribute("data-class", className);
+  linha.dataset.originalText = className.toLowerCase();
+  linha.style.display = "flex";
+  linha.style.alignItems = "center";
+  linha.style.gap = "8px";
+  linha.style.padding = "10px 12px";
+  linha.style.border = "1px solid #ddd";
+  linha.style.borderRadius = "8px";
+  linha.style.background = "#fff";
+  linha.style.boxShadow = "0 2px 6px rgba(0,0,0,0.06)";
+  linha.style.cursor = "grab";
+
+  linha.addEventListener("dragstart", (e) => {
+    e.dataTransfer.setData("text/plain", className);
+    e.dataTransfer.effectAllowed = "move";
+    linha.style.opacity = "0.5";
+  });
+
+  linha.addEventListener("dragend", () => {
+    linha.style.opacity = "1";
+  });
+
+  linha.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    linha.style.background = "#eef";
+  });
+
+  linha.addEventListener("dragleave", () => {
+    linha.style.background = "#fff";
+  });
+
+  linha.addEventListener("drop", (e) => {
+    e.preventDefault();
+    linha.style.background = "#fff";
+    const draggedClass = e.dataTransfer.getData("text/plain");
+    const draggedElement = container.querySelector(`[data-class="${draggedClass}"]`);
+    if (draggedElement && draggedElement !== linha) {
+      container.insertBefore(draggedElement, linha.nextSibling);
+      reordenarTabelasPorGrupoVisual();
+    }
+  });
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.setAttribute("data-class", className);
+  checkbox.checked = config ? config.checkboxMarcado !== false : true;
+  checkbox.style.width = "18px";
+  checkbox.style.height = "18px";
+  checkbox.style.accentColor = "#4a90e2";
+  checkbox.addEventListener("change", () => {
+    if (grupoTabela) grupoTabela.style.display = checkbox.checked ? "block" : "none";
+  });
+
+  const inputOrdem = document.createElement("input");
+  inputOrdem.type = "number";
+  inputOrdem.min = 1;
+  inputOrdem.value = config?.ordemBase || 1;
+  inputOrdem.setAttribute("data-class", className);
+  inputOrdem.title = "Número base do grupo";
+  inputOrdem.style.width = "60px";
+  inputOrdem.style.padding = "4px 6px";
+  inputOrdem.style.border = "1px solid #ccc";
+  inputOrdem.style.borderRadius = "4px";
+  inputOrdem.style.fontSize = "14px";
+  inputOrdem.addEventListener("input", () => {
+    aplicarOrdemGrupos();
+    reordenarTabelasPorGrupoVisual();
+  });
+
+  const label = document.createElement("label");
+  label.innerText = className;
+  label.style.whiteSpace = "nowrap";
+  label.style.flex = "1";
+  label.style.fontSize = "15px";
+
+  const botaoDuplicar = document.createElement("button");
+  botaoDuplicar.textContent = "🌀";
+  botaoDuplicar.title = "Duplicar grupo";
+  botaoDuplicar.style.border = "none";
+  botaoDuplicar.style.background = "none";
+  botaoDuplicar.style.cursor = "pointer";
+  botaoDuplicar.style.fontSize = "18px";
+  botaoDuplicar.style.marginLeft = "4px";
+  botaoDuplicar.addEventListener("click", () => {
+    duplicarGrupoSemRender(className);
+  });
+
+  linha.appendChild(checkbox);
+  linha.appendChild(inputOrdem);
+  linha.appendChild(label);
+  linha.appendChild(botaoDuplicar);
+  container.appendChild(linha);
+}
+
+
   
   
 function gerarNomeDuplicado(base) {
@@ -1902,3 +2265,307 @@ function gerarNomeDuplicado(base) {
 
 
 
+
+
+  async function gerarOrdemDeProducao() {
+  if (!document || !window) return console.error("Função deve ser executada em ambiente de navegador com DOM.");
+
+  const getValue = id => document.getElementById(id)?.value || "-";
+
+  const dados = {
+    numero: getValue("numeroOrcamento"),
+    data: getValue("dataOrcamento"),
+    operador: getValue("operadorInterno"),
+    vendedor: document.getElementById("vendedorResponsavel")?.selectedOptions[0]?.textContent || "-"
+  };
+
+  const clienteWrapper = document.querySelector(".cliente-item");
+  dados.nomeCliente = clienteWrapper?.querySelector(".razaoSocial")?.value || "-";
+  dados.telefoneCliente = clienteWrapper?.querySelector(".telefoneCliente")?.value || "-";
+
+  const cabecalho = `
+    <table class="table table-bordered table-sm w-100 mb-4">
+      <tbody>
+        <tr>
+          <td><strong>Ordem de Produção</strong></td>
+          <td><strong>Nº:</strong> ${dados.numero}</td>
+          <td><strong>Data:</strong> ${dados.data}</td>
+        </tr>
+        <tr>
+          <td colspan="2"><strong>Cliente:</strong> ${dados.nomeCliente}</td>
+          <td><strong>Telefone:</strong> ${dados.telefoneCliente}</td>
+        </tr>
+        <tr>
+          <td><strong>Operador:</strong> ${dados.operador}</td>
+          <td colspan="2"><strong>Vendedor:</strong> ${dados.vendedor}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  const tabelas = document.querySelectorAll(".grupo-tabela");
+  let blocosHTML = "";
+
+  tabelas.forEach(wrapper => {
+    const tabela = wrapper.querySelector("table");
+    if (!tabela) return;
+    const tbody = tabela.querySelector("tbody");
+    if (!tbody) return;
+
+    const grupoTituloOriginal = wrapper.querySelector("h3 strong")?.textContent || "Grupo";
+    const grupoTitulo = grupoTituloOriginal
+      .replace(/\d+/g, '')
+      .replace(/-/g, ' ')
+      .split(' ')
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+      .join(' ')
+      .trim();
+
+    const novaTabela = document.createElement("table");
+    novaTabela.className = "table table-bordered table-sm w-100";
+    novaTabela.style.pageBreakInside = "avoid";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML = `
+      <tr>
+        <th style="width: 40%; background-color: #f2f2f2;">Utilização</th>
+        <th style="width: 40%; background-color: #f2f2f2;">Descrição</th>
+        <th style="width: 20%; background-color: #f2f2f2;">Quantidade</th>
+      </tr>`;
+    novaTabela.appendChild(thead);
+
+    const novoTbody = document.createElement("tbody");
+
+    const linhas = Array.from(tbody.querySelectorAll("tr.draggable"));
+    linhas.forEach(linha => {
+      const utilizacao = linha.children[0]?.innerText || "";
+      const descricao = linha.children[1]?.innerText || "";
+      const quantidade = linha.children[3]?.innerText || "1";
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${utilizacao}</td>
+        <td>${descricao}</td>
+        <td style="text-align: center;">${quantidade}</td>`;
+      novoTbody.appendChild(row);
+    });
+
+    const obsRow = Array.from(tbody.querySelectorAll("tr")).find(tr => tr.querySelector(".editable-observacoes"));
+    if (obsRow) {
+      const obsTexto = obsRow.querySelector(".editable-observacoes")?.innerText || "";
+      const obsRowFormatada = document.createElement("tr");
+      obsRowFormatada.innerHTML = `<td colspan="3"><strong>Observações:</strong> ${obsTexto.replace(/\n/g, "<br>")}</td>`;
+      novoTbody.appendChild(obsRowFormatada);
+    }
+
+    novaTabela.appendChild(novoTbody);
+
+    blocosHTML += `
+      <div style="break-inside: avoid; page-break-inside: avoid;">
+        <h2 style="font-size: 16px; margin-top: 30px; text-align: center; border-bottom: 1px solid #000;">${grupoTitulo}</h2>
+        ${novaTabela.outerHTML}
+      </div>
+    `;
+  });
+
+  const corpoHTML = `
+    <html>
+      <head>
+        <title>Ordem de Produção - ${dados.numero}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+          body { font-family: Arial, sans-serif; padding: 30px; }
+          table { font-size: 12px; page-break-inside: avoid; }
+          th, td { padding: 4px; vertical-align: middle; }
+          h2 { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        ${cabecalho}
+        ${blocosHTML}
+      </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank');
+  if (!printWindow || !printWindow.document) {
+    return console.error("Não foi possível abrir a nova janela para impressão.");
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(corpoHTML);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+}
+
+function gerarOrcamentoParaImpressao() {
+  const getValue = id => document.getElementById(id)?.value || "-";
+
+  const dados = {
+    numero: getValue("numeroOrcamento"),
+    data: getValue("dataOrcamento"),
+    origem: getValue("origemCliente"),
+    nomeOrigem: getValue("nomeOrigem"),
+    codigoOrigem: getValue("codigoOrigem"),
+    telefoneOrigem: getValue("telefoneOrigem"),
+    emailOrigem: getValue("emailOrigem"),
+    comissao: getValue("comissaoArquiteto"),
+    condicao: getValue("condicaoPagamento"),
+    prazos: getValue("prazosArea"),
+    condicoesGerais: getValue("condicoesGerais"),
+    operador: getValue("operadorInterno"),
+    vendedor: document.getElementById("vendedorResponsavel")?.selectedOptions[0]?.textContent || "-"
+  };
+
+  const clienteWrapper = document.querySelector(".cliente-item");
+  dados.nomeCliente = clienteWrapper?.querySelector(".razaoSocial")?.value || "-";
+  dados.cpfCnpj = clienteWrapper?.querySelector(".cpfCnpj")?.value || "-";
+  dados.telefoneCliente = clienteWrapper?.querySelector(".telefoneCliente")?.value || "-";
+
+  const tabelas = document.querySelectorAll(".grupo-tabela");
+  const grupos = {};
+  let totalGeral = 0;
+
+  tabelas.forEach(wrapper => {
+    if (wrapper.style.display === "none") return;
+
+    const tabela = wrapper.querySelector("table");
+    if (!tabela) return;
+    const tbody = tabela.querySelector("tbody");
+    if (!tbody) return;
+    const primeiraLinha = tbody.querySelector("tr.draggable");
+    const totalRow = tbody.querySelector("tr.extra-summary-row");
+    const obsRow = Array.from(tbody.querySelectorAll("tr")).find(tr => tr.querySelector(".editable-observacoes"));
+    if (!primeiraLinha || !totalRow) return;
+
+    const grupoId = primeiraLinha.children[0]?.innerText?.trim() || "sem-nome";
+    const prefixo = grupoId.split(".")[0];
+
+    const valorTotalStr = totalRow.querySelector(".formula-result")?.innerText || "R$ 0,00";
+    const valorNumerico = parseFloat(valorTotalStr.replace("R$", "").replace(".", "").replace(",", ".")) || 0;
+    totalGeral += valorNumerico;
+
+    if (!grupos[prefixo]) grupos[prefixo] = { subgrupos: [], total: 0 };
+
+    grupos[prefixo].total += valorNumerico;
+    grupos[prefixo].subgrupos.push({
+      utilizacao: primeiraLinha.children[1]?.innerText || "",
+      descricao: primeiraLinha.children[2]?.innerText || "",
+      observacao: obsRow?.querySelector(".editable-observacoes")?.innerText || ""
+    });
+  });
+
+  let blocosHTML = "";
+
+  Object.entries(grupos).forEach(([prefixo, grupo]) => {
+    let bloco = `<h1 style="font-size: 18px; margin-top: 40px; text-align: center;">Grupo ${prefixo}</h1>`;
+    grupo.subgrupos.forEach(sub => {
+      bloco += `
+        <table class="table table-bordered table-sm w-100">
+          <thead>
+            <tr>
+              <th style="width: 50%; background:#f2f2f2">Utilização</th>
+              <th style="width: 50%; background:#f2f2f2">Descrição</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${sub.utilizacao}</td>
+              <td>${sub.descricao}</td>
+            </tr>
+            ${sub.observacao ? `<tr><td colspan="2"><strong>Observação:</strong> ${sub.observacao}</td></tr>` : ""}
+          </tbody>
+        </table>
+      `;
+    });
+
+    bloco += `
+      <div style="text-align: right; margin-top: 10px;">
+        <strong>Total: R$ ${grupo.total.toFixed(2).replace('.', ',')}</strong>
+      </div>
+      <hr>
+    `;
+
+    blocosHTML += bloco;
+  });
+
+  const rodape = `
+    <div style="margin-top: 60px;">
+      <table class="table table-bordered table-sm w-100">
+        <tbody>
+          <tr><td><strong>Condição de Pagamento:</strong></td><td>${dados.condicao}</td></tr>
+          <tr><td><strong>Prazos por Área:</strong></td><td>${dados.prazos.replace(/\n/g, "<br>")}</td></tr>
+          <tr><td><strong>Condições Gerais:</strong></td><td>${dados.condicoesGerais.replace(/\n/g, "<br>")}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align: right; font-size: 18px; margin-top: 20px;">
+      <strong>Total Geral: R$ ${totalGeral.toFixed(2).replace('.', ',')}</strong>
+    </div>
+  `;
+
+  const cabecalho = `
+    <div style="margin-bottom: 40px;">
+      <table class="table table-bordered table-sm w-100">
+        <tr>
+          <td style="width: 40%; text-align: center; vertical-align: middle;">
+            <img src="logo.jpg" style="max-height: 80px;"><br>
+            <BR>
+           
+            CNPJ: 00.000.000/0000-00<br>
+            (31) 99999-9999<br>
+            www.ferreiraulhoa.com.br
+          </td>
+          <td style="width: 60%;">
+            <table class="table table-sm w-100">
+              <tbody>
+                <tr><td><strong>Orçamento:</strong></td><td>${dados.numero}</td></tr>
+                <tr><td><strong>Data:</strong></td><td>${dados.data}</td></tr>
+                <tr><td><strong>Telefone:</strong></td><td>${dados.telefoneOrigem}</td></tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <table class="table table-bordered table-sm w-100 mt-2">
+        <tbody>
+          <tr><td><strong>Email Origem:</strong></td><td>${dados.emailOrigem}</td></tr>
+          <tr><td><strong>Cliente:</strong></td><td>${dados.nomeCliente}</td></tr>
+          <tr><td><strong>CPF/CNPJ:</strong></td><td>${dados.cpfCnpj}</td></tr>
+          <tr><td><strong>Telefone Cliente:</strong></td><td>${dados.telefoneCliente}</td></tr>
+          <tr><td><strong>Vendedor:</strong></td><td>${dados.vendedor}</td></tr>
+          <tr><td><strong>Operador:</strong></td><td>${dados.operador}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const corpoHTML = `
+    <html>
+      <head>
+        <title>Orçamento ${dados.numero}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; }
+          table { font-size: 12px; }
+          th, td { padding: 4px; vertical-align: middle; }
+          h1, h2 { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        ${cabecalho}
+        ${blocosHTML}
+        ${rodape}
+      </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) return;
+  printWindow.document.open();
+  printWindow.document.write(corpoHTML);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+}

@@ -18,28 +18,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    .grupo-campos-numericos {
-  display: flex;
-  justify-content: center;         /* Alinhamento central */
-  gap: 30px;
-  margin-top: 10px;
-  margin-bottom: 15px;
-}
-
-.grupo-campos-numericos label {
-  font-weight: bold;
-  margin-right: 5px;
-}
-
-.grupo-campos-numericos input[type="number"] {
-  width: 80px;
-  padding: 5px 10px;
-  border: 1px solid #ccc;
-  border-radius: 12px;             /* Borda arredondada */
-  text-align: center;
-  font-size: 14px;
-}
-
     body { padding-bottom: 80px; }
     .valor-destaque {
       padding: 12px 20px; background-color: #f8f9fa; border-radius: 8px;
@@ -99,8 +77,8 @@
       <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
     </ul>
     <div class="sidebar-footer">
-      <button onclick="salvarProdutoBase()" id="save-proposal" class="sidebar-button">
-        <span class="material-icons-outlined">save</span> Salvar Proposta
+      <button onclick="salvarProdutoModelo()" id="save-proposal" class="sidebar-button">
+        <span class="material-icons-outlined">save</span> Salvar Modelo
       </button>
       <button onclick="gerarOrcamentoParaImpressao()" class="sidebar-button">
         <span class="material-icons-outlined">print</span> Imprimir Envio
@@ -226,433 +204,12 @@
   
   
     <header class="topbar">
-      <h2>Criar Proposta</h2>
+      <h2>Compor Produto</h2>
       <img src="logo-redonda.png" alt="Logo" class="logo-round" height="50">
     </header>
   <!-- Formulário -->
 <br>
-  <form id="novoOrcamentoForm">
-    <!-- INFORMAÇÕES DO ORÇAMENTO -->
-    <div class="accordion mb-3" id="accordionOrcamento">
 
-      <!-- Aba: Informações do Orçamento -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfoOrcamento">
-            Informações do Orçamento
-          </button>
-        </h2>
-        <div id="collapseInfoOrcamento" class="accordion-collapse collapse show">
-          <div class="accordion-body">
-            <div class="row g-3">
-              <script>
-  function gerarNumeroOrcamento() {
-    const hoje = new Date();
-    const dia = String(hoje.getDate()).padStart(2, '0');
-    const ano = hoje.getFullYear();
-
-    const aleatorio = Array.from({ length: 5 }, () =>
-      Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, '').charAt(0)
-    ).join('');
-
-    return `${dia}-${ano}-${aleatorio}`;
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    const campoNumero = document.getElementById("numeroOrcamento");
-    if (campoNumero && !campoNumero.value) {
-      campoNumero.value = gerarNumeroOrcamento();
-    }
-  });
-</script>
-
-              <div class="col-md-4">
-                <label class="form-label">Número do Orçamento</label>
-                <input type="text" class="form-control" id="numeroOrcamento" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Data do Orçamento</label>
-                <input type="date" class="form-control" id="dataOrcamento" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Origem do Cliente</label>
-                <select class="form-select" id="origemCliente" required>
-                  <option value="">Selecione</option>
-                  <option>Arquiteto(a)</option>
-                  <option>Construtora</option>
-                  <option>Engenheiro(a)</option>
-                  <option>Google</option>
-                  <option>Instagram</option>
-                  <option>Indicação</option>
-                  <option>Já é cliente</option>
-                  <option>Licitação</option>
-                  <option>Outros</option>
-                </select>
-              </div>
-
-              <!-- Nome + Autocomplete -->
-              <div class="col-md-6 position-relative">
-                <label for="nomeOrigem" class="form-label">Nome Arquiteto/Construtora/Engenheiro</label>
-                <input type="text" class="form-control" id="nomeOrigem" placeholder="Digite para buscar..." autocomplete="off">
-                <ul id="sugestoesOrigem" class="list-group position-absolute w-100 shadow bg-white" style="z-index: 10; max-height: 200px; overflow-y: auto; display: none;"></ul>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Código Omie</label>
-                <input type="text" class="form-control" id="codigoOrigem" readonly>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Telefone Origem</label>
-                <input type="text" class="form-control" id="telefoneOrigem">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">E-mail Origem</label>
-                <input type="email" class="form-control" id="emailOrigem">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">% Comissão Arquiteto</label>
-                <input type="number" class="form-control" id="comissaoArquiteto" step="0.01" min="0" max="100">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Aba: Dados do Cliente -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCliente">
-            Dados do Cliente
-          </button>
-        </h2>
-        <div id="collapseCliente" class="accordion-collapse collapse">
-          <div class="accordion-body">
-           <div id="clientesWrapper">
- <div id="clientesWrapper">
-  <div class="row g-3 cliente-item">
-    <div class="col-md-6 position-relative">
-      <label class="form-label">Nome / Razão Social</label>
-      <input type="text" class="form-control razaoSocial" placeholder="Digite para buscar..." autocomplete="off">
-      <ul class="sugestoesCliente list-group position-absolute w-100 shadow bg-white" style="z-index: 10; max-height: 200px; overflow-y: auto; display: none;"></ul>
-    </div>
-    <div class="col-md-6">
-      <label class="form-label">Código Omie</label>
-      <input type="text" class="form-control codigoCliente" readonly>
-    </div>
-    <div class="col-md-6">
-      <label class="form-label">CPF / CNPJ</label>
-      <input type="text" class="form-control cpfCnpj" required>
-    </div>
-    <div class="col-md-6">
-      <label class="form-label">Função</label>
-      <input type="text" class="form-control funcaoCliente">
-    </div>
-    <div class="col-md-6">
-      <label class="form-label">Telefone</label>
-      <input type="text" class="form-control telefoneCliente">
-    </div>
-  </div>
-  <br>
-</div>
-</div>
-
-<button type="button" class="btn btn-outline-primary mt-2" onclick="adicionarClienteRelacionado()">Adicionar Cliente Relacionado</button>
-          </div>
-        </div>
-      </div>
-<script>
-  function aplicarAutocompleteCliente(container) {
-    const input = container.querySelector(".razaoSocial");
-    const codigoInput = container.querySelector(".codigoCliente");
-    const cpfInput = container.querySelector(".cpfCnpj");
-    const sugestoes = container.querySelector(".sugestoesCliente");
-
-    input.addEventListener("input", async () => {
-      const termo = input.value.trim();
-      if (termo.length < 3) {
-        sugestoes.style.display = "none";
-        return;
-      }
-      try {
-        const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar");
-        const clientes = await resposta.json();
-        const resultados = clientes.filter(c =>
-          (c.nome_fantasia || "").toLowerCase().includes(termo.toLowerCase()) ||
-          (c.razao_social || "").toLowerCase().includes(termo.toLowerCase())
-        );
-        sugestoes.innerHTML = "";
-        resultados.forEach(cliente => {
-          const item = document.createElement("li");
-          item.className = "list-group-item list-group-item-action";
-          item.textContent = cliente.nome_fantasia || cliente.razao_social;
-          item.dataset.nome = cliente.nome_fantasia || cliente.razao_social;
-          item.dataset.codigo = cliente.codigo_cliente_omie || "";
-          item.dataset.cpfcnpj = cliente.cnpj_cpf || "";
-          item.dataset.telefone = cliente.telefone || "";
-          item.addEventListener("click", () => {
-            input.value = item.dataset.nome;
-            codigoInput.value = item.dataset.codigo;
-            cpfInput.value = item.dataset.cpfcnpj;
-            const telefoneInput = container.querySelector(".telefoneCliente");
-            if (telefoneInput) telefoneInput.value = item.dataset.telefone;
-            sugestoes.style.display = "none";
-          });
-          sugestoes.appendChild(item);
-        });
-        sugestoes.style.display = resultados.length ? "block" : "none";
-      } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
-        sugestoes.style.display = "none";
-      }
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!sugestoes.contains(e.target) && e.target !== input) {
-        sugestoes.style.display = "none";
-      }
-    });
-  }
-
-  function adicionarClienteRelacionado() {
-    const wrapper = document.getElementById("clientesWrapper");
-    const novo = wrapper.firstElementChild.cloneNode(true);
-    novo.querySelectorAll("input").forEach(input => input.value = "");
-    const cnpjGroup = novo.querySelector(".cpfCnpj").closest(".col-md-6");
-    if (cnpjGroup) cnpjGroup.remove(); // Remove CPF/CNPJ para os seguintes
-    const br = document.createElement("br");
-    wrapper.appendChild(br);
-    wrapper.appendChild(novo);
-    aplicarAutocompleteCliente(novo);
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    const primeiroCliente = document.querySelector(".cliente-item");
-    if (primeiroCliente) aplicarAutocompleteCliente(primeiroCliente);
-  });
-</script>
-
-<script>
-  function aplicarAutocompleteCliente(container) {
-    const input = container.querySelector(".razaoSocial");
-    const codigoInput = container.querySelector(".codigoCliente");
-    const cpfInput = container.querySelector(".cpfCnpj");
-    const telefoneInput = container.querySelector(".telefoneCliente");
-    const sugestoes = container.querySelector(".sugestoesCliente");
-
-    input.addEventListener("input", async () => {
-      const termo = input.value.trim();
-      if (termo.length < 3) {
-        sugestoes.style.display = "none";
-        return;
-      }
-      try {
-        const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar");
-        const clientes = await resposta.json();
-        const resultados = clientes.filter(c =>
-          (c.nome_fantasia || "").toLowerCase().includes(termo.toLowerCase()) ||
-          (c.razao_social || "").toLowerCase().includes(termo.toLowerCase())
-        );
-        sugestoes.innerHTML = "";
-        resultados.forEach(cliente => {
-          const item = document.createElement("li");
-          item.className = "list-group-item list-group-item-action";
-          item.textContent = cliente.nome_fantasia || cliente.razao_social;
-          item.dataset.nome = cliente.nome_fantasia || cliente.razao_social;
-          item.dataset.codigo = cliente.codigo_cliente_omie || "";
-          item.dataset.cpfcnpj = cliente.cnpj_cpf || "";
-          item.dataset.telefone = cliente.telefone1_numero || "";
-          item.addEventListener("click", () => {
-            input.value = item.dataset.nome;
-            codigoInput.value = item.dataset.codigo;
-            cpfInput.value = item.dataset.cpfcnpj;
-            if (telefoneInput) {
-              telefoneInput.value = item.dataset.telefone;
-            }
-            const telefoneInput = container.querySelector(".telefoneCliente");
-            if (telefoneInput) telefoneInput.value = item.dataset.telefone;
-            sugestoes.style.display = "none";
-          });
-          sugestoes.appendChild(item);
-        });
-        sugestoes.style.display = resultados.length ? "block" : "none";
-      } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
-        sugestoes.style.display = "none";
-      }
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!sugestoes.contains(e.target) && e.target !== input) {
-        sugestoes.style.display = "none";
-      }
-    });
-  }
-
-  function adicionarClienteRelacionado() {
-    const wrapper = document.getElementById("clientesWrapper");
-    const novo = wrapper.firstElementChild.cloneNode(true);
-    novo.querySelectorAll("input").forEach(input => input.value = "");
-    const cnpjGroup = novo.querySelector(".cpfCnpj").closest(".col-md-6");
-    if (cnpjGroup) cnpjGroup.remove(); // Remove CPF/CNPJ para os seguintes
-    const br = document.createElement("br");
-    wrapper.appendChild(br);
-    wrapper.appendChild(novo);
-    aplicarAutocompleteCliente(novo);
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    const primeiroCliente = document.querySelector(".cliente-item");
-    if (primeiroCliente) aplicarAutocompleteCliente(primeiroCliente);
-  });
-</script>
-
-
-
-
-
-      <!-- Aba: Endereço da Obra -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEndereco">
-            Endereço da Obra
-          </button>
-        </h2>
-        <div id="collapseEndereco" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            <div class="row g-3">
-              <div class="col-md-3">
-                <label class="form-label">CEP</label>
-                <input type="text" class="form-control" id="cep">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Rua / Avenida</label>
-                <input type="text" class="form-control" id="rua">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Número</label>
-                <input type="text" class="form-control" id="numero">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Complemento</label>
-                <input type="text" class="form-control" id="complemento">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Bairro</label>
-                <input type="text" class="form-control" id="bairro">
-              </div>
-              <div class="col-md-2">
-                <label class="form-label">Cidade</label>
-                <input type="text" class="form-control" id="cidade">
-              </div>
-              <div class="col-md-2">
-                <label class="form-label">Estado</label>
-                <input type="text" class="form-control" id="estado">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Aba: Equipe Interna -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEquipe">
-            Equipe Interna
-          </button>
-        </h2>
-        <div id="collapseEquipe" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            <div class="row g-3">
-              <div class="col-md-6">
-  <label class="form-label">Vendedor Responsável</label>
-  <select class="form-select" id="vendedorResponsavel" required>
-    <option value="">Carregando...</option>
-  </select>
-</div>
-<script>
-  async function carregarVendedores() {
-    try {
-      const select = document.getElementById("vendedorResponsavel");
-      const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/vendedores");
-      const vendedores = await resposta.json();
-
-      select.innerHTML = '<option value="">Selecione um vendedor</option>';
-      vendedores.forEach(vendedor => {
-        const option = document.createElement("option");
-        option.value = vendedor._id;
-        option.textContent = vendedor.nome;
-        select.appendChild(option);
-      });
-    } catch (erro) {
-      console.error("Erro ao carregar vendedores:", erro);
-      document.getElementById("vendedorResponsavel").innerHTML =
-        '<option value="">Erro ao carregar</option>';
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    carregarVendedores();
-  });
-</script>
-
-              <div class="col-md-6">
-                <label class="form-label">Operador (Usuário Interno)</label>
-                <input type="text" class="form-control" id="operadorInterno">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Aba: Produtos e Condições -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProdutos">
-            Produtos, Prazos e Condições
-          </button>
-        </h2>
-        <div id="collapseProdutos" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            
-            <div class="mb-3">
-              <label class="form-label">Prazos por Área (dinâmico)</label>
-              <textarea class="form-control" id="prazosArea"  placeholder="Estrutura
-Área ___: _____ dias uteis após aprovação do respectivo projeto
-
-Vidro
-Área ___: _____ dias uteis após instalação da respectiva estrutura"rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Condição de Pagamento</label>
-              <input type="text" class="form-control" id="condicaoPagamento">
-            </div>
-     <div class="mb-3">
-  <label class="form-label">Condições Gerais (Escolha um modelo ou edite)</label>
-
-  <div class="d-flex flex-wrap gap-2 mb-2">
-    <button type="button" class="btn btn-outline-primary" onclick="preencherCondicoesComInstalacao()">
-      Orçamento com medição e instalação
-    </button>
-    <button type="button" class="btn btn-outline-secondary" onclick="preencherCondicoesSemInstalacao()">
-      Orçamento sem medição e instalação
-    </button>
-    <button type="button" class="btn btn-outline-warning" onclick="preencherCondicoesSemTampo()">
-      Não incluso tampo
-    </button>
-  </div>
-
-  <textarea
-    class="form-control"
-    id="condicoesGerais"
-    rows="10"
-    style="min-height: 240px; resize: vertical;"
-    placeholder="Escolha uma opção ou edite manualmente...">
-  </textarea>
-</div>
-        </div>
-      </div>
-
-    </div>
-  </form>
 </div>
 
 
@@ -688,7 +245,7 @@ Vidro
 • Caso o orçamento inclua vidros e/ou calhas, o pagamento e faturamento deverão ser realizados pela contratante, sendo que a contratada irá apenas intermediar e realizar a produção do pedido.`;
   }
 </script>
-<!-- 
+
   <script>
               const nomeOrigemInput = document.getElementById("nomeOrigem");
               const codigoOrigemInput = document.getElementById("codigoOrigem");
@@ -753,14 +310,8 @@ Vidro
 
           </div>
 
- -->
- 
 
- <div id="grupo-controles" class="grupo-controles">
-      <h4>Exibir Grupos:</h4>
-      <div id="grupo-checkboxes"></div>
-    </div>
-   <!-- Container de busca centralizado -->
+    <!-- Container de busca centralizado -->
     <div class="search-container d-flex justify-content-center align-items-center gap-3 mb-4">
       <span class="material-icons-outlined">search</span>
       <input type="text" id="product-search" class="form-control" placeholder="Pesquisar produtos..." >
@@ -773,6 +324,12 @@ Vidro
         </ul>
       </div>
     </div>
+
+    <div id="grupo-controles" class="grupo-controles">
+      <h4>Exibir Grupos:</h4>
+      <div id="grupo-checkboxes"></div>
+    </div>
+
     <div class="table-container">
       <h3>Produtos Disponíveis</h3>
       <table id="search-results" class="table">
@@ -789,9 +346,18 @@ Vidro
         <tbody></tbody>
       </table>
     </div>
+<div class="search-container d-flex justify-content-center align-items-center gap-3 mb-4">
+  <span class="material-icons-outlined">search</span>
+  <input type="text" id="product-search" class="form-control" placeholder="Pesquisar produtos...">
 
-    
-
+  <!-- Botão com dropdown de classes -->
+  <div class="dropdown">
+    <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownClassesBtn" data-bs-toggle="dropdown" aria-expanded="false">
+     Produto Acabado
+    </button>
+    <ul class="dropdown-menu" id="dropdownClassesList" aria-labelledby="dropdownClassesBtn"><li><a class="dropdown-item" href="#">Espera</a></li><li><a class="dropdown-item" href="#">Fechamento Frontal</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Botão</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Calha Ferreira Ulhoa</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Calha Infinity</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Canaleta </a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Garra</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Montante H</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Proteção</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Spider</a></li><li><a class="dropdown-item" href="#">Instalação</a></li><li><a class="dropdown-item" href="#">Perfil U</a></li><li><a class="dropdown-item" href="#">Pergolado</a></li><li><a class="dropdown-item" href="#">Porta / Portão / Portinhola</a></li><li><a class="dropdown-item" href="#">Projetos Especiais</a></li><li><a class="dropdown-item" href="#">Revestimento</a></li><li><a class="dropdown-item" href="#">Vidro</a></li><li><a class="dropdown-item" href="#">Corrimão</a></li><li><a class="dropdown-item" href="#">Instalação</a></li></ul>
+  </div>
+</div>
     <div class="table-container">
       <h3>Produtos Selecionados</h3>
       <table id="included-products" class="table">
@@ -1032,6 +598,8 @@ Vidro
     setTimeout(preencherPrazosPorArea, 5000);
 
   });
+
+  
 </script>
 
 

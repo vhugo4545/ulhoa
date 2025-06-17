@@ -225,7 +225,7 @@
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('miudezas')">content_copy</span>
           </label>
           <input type="text" id="popup_miudezas" data-tag="miudezas" class="percentual-campo">
-          <div class="percent-result" data-for="popup_miudezas">💰 Valor: R$ 0,00</div>
+     
         </div>
   
         <!-- Exemplo com cálculo percentual -->
@@ -234,7 +234,7 @@
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('gasto_operacional')">content_copy</span>
           </label>
           <input type="text" id="popup_gasto_operacional" data-tag="gasto_operacional" class="percentual-campo">
-          <div class="percent-result" data-for="popup_gasto_operacional">💰 Valor: R$ 0,00</div>
+        
         </div>
   
         <div class="form-group">
@@ -242,7 +242,7 @@
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('impostos')">content_copy</span>
           </label>
           <input type="text" id="popup_impostos" data-tag="impostos" class="percentual-campo">
-          <div class="percent-result" data-for="popup_impostos">💰 Valor: R$ 0,00</div>
+      
         </div>
   
         <div class="form-group">
@@ -250,7 +250,7 @@
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('margem_lucro')">content_copy</span>
           </label>
           <input type="text" id="popup_margem_lucro" data-tag="margem_lucro" class="percentual-campo">
-          <div class="percent-result" data-for="popup_margem_lucro">💰 Valor: R$ 0,00</div>
+        
         </div>
   
         <div class="form-group">
@@ -258,7 +258,7 @@
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('margem_seguranca')">content_copy</span>
           </label>
           <input type="text" id="popup_margem_seguranca" data-tag="margem_seguranca" class="percentual-campo">
-          <div class="percent-result" data-for="popup_margem_seguranca">💰 Valor: R$ 0,00</div>
+        
         </div>
   
         <div class="form-group">
@@ -266,7 +266,7 @@
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('comissao_arquiteta')">content_copy</span>
           </label>
           <input type="text" id="popup_comissao_arquiteta" data-tag="comissao_arquiteta" class="percentual-campo">
-          <div class="percent-result" data-for="popup_comissao_arquiteta">💰 Valor: R$ 0,00</div>
+ 
         </div>
   
         <div class="form-group">
@@ -296,7 +296,7 @@
         </div>
   
         <div class="form-group">
-          <label for="popup_numero_protecoes">Número de Proteções
+          <label for="popup_numero_protecoes">Nº de Proteções / Alturas
             <span class="material-symbols-outlined copy-icon" onclick="copiarTag('numero_protecoes')">content_copy</span>
           </label>
           <input type="text" id="popup_numero_protecoes" data-tag="numero_protecoes">
@@ -354,10 +354,7 @@
         }
   
         const totalRow = container.querySelector('tr.total-row');
-        if (!totalRow) {
-          console.warn(`❌ Linha total-row não encontrada no grupo '${groupId}'.`);
-          return 0;
-        }
+     
   
         const valorTd = totalRow.querySelectorAll('td')[1];
         if (!valorTd) {
@@ -444,10 +441,18 @@
 
 
 <!-- Grupo de Controle -->
-<div id="grupo-controles" class="grupo-controles">
-  <h4>Exibir Grupos:</h4>
-  <div id="grupo-checkboxes"></div>
+<div id="grupos-container" class="grupo-wrapper">
+  <div class="grupo" data-group="1">
+    <div class="grupo-header">
+      <input type="number" class="input-ordem" value="1" />
+      <input type="text" class="input-subgrupo" placeholder="Ambiente" value="Cozinha" />
+    </div>
+    <div class="produtos-dropzone" ondrop="onDrop(event)" ondragover="onDragOver(event)">
+      <!-- Produtos aqui -->
+    </div>
+  </div>
 </div>
+
 
 <!-- Tabelas -->
 <div class="table-container">

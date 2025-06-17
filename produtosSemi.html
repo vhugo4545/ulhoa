@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* Estilo do Autocomplete */
         .autocomplete-suggestions {
             border: 1px solid #ccc;
             max-height: 200px;
@@ -30,7 +29,6 @@
             background-color: #f0f0f0;
         }
 
-        /* Sidebar e Layout */
         body {
             padding-bottom: 80px;
             font-family: 'Poppins', sans-serif;
@@ -73,16 +71,14 @@
             margin-left: 260px;
             padding: 20px;
         }
-        #regraForm > button{
+        #regraForm > button {
             width: 100%;
         }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-
 <body class="p-4">
-    <!-- Sidebar -->
     <aside class="sidebar">
         <ul>
             <li><a href="../pages/listagem.html"><span class="material-icons-outlined">home</span> Início</a></li>
@@ -97,11 +93,9 @@
         </div>
     </aside>
 
-    <!-- Conteúdo Principal -->
     <div class="container">
         <h2 class="mb-4">Gerenciar Produtos Acabados</h2>
 
-        <!-- Cadastro de Regras -->
         <div class="card mb-4">
             <div class="card-header">Cadastrar Nova Regra</div>
             <div class="card-body">
@@ -111,14 +105,21 @@
                         <input type="text" id="produtoAcabadoInput" class="form-control" placeholder="Código ou Nome..." autocomplete="off" required>
                         <div id="autocomplete-acabado" class="autocomplete-suggestions"></div>
                     </div>
-                    <div class="mb-3 position-relative">
-                        <label>Produto Referência de valor:</label>
-                        <input type="text" id="produtoReferenciaInput" class="form-control" placeholder="Código ou Nome..." autocomplete="off" required>
-                        <div id="autocomplete-referencia" class="autocomplete-suggestions"></div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3 position-relative">
+                            <label>Produto Referência 1 (valor_base):</label>
+                            <input type="text" id="produtoReferenciaInput1" class="form-control" placeholder="Código ou Nome..." autocomplete="off" required>
+                            <div id="autocomplete-referencia1" class="autocomplete-suggestions"></div>
+                        </div>
+                        <div class="col-md-6 mb-3 position-relative">
+                            <label>Produto Referência 2 (valor_base2):</label>
+                            <input type="text" id="produtoReferenciaInput2" class="form-control" placeholder="Código ou Nome..." autocomplete="off">
+                            <div id="autocomplete-referencia2" class="autocomplete-suggestions"></div>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label>Fórmula</label>
-                        <input type="text" id="formula" class="form-control" placeholder="Ex: valor_base / 2" required>
+                        <input type="text" id="formula" class="form-control" placeholder="Ex: (valor_base + valor_base2) / 2" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Salvar Regra</button>
                 </form>
@@ -126,10 +127,8 @@
             </div>
         </div>
 
-        <!-- Filtro de Regras -->
         <input type="text" id="filtroTabela" class="form-control mb-3" placeholder="🔎 Pesquisar regra...">
 
-        <!-- Tabela de Regras -->
         <div class="card">
             <div class="card-header">Regras Cadastradas</div>
             <div class="card-body">
@@ -138,8 +137,8 @@
                         <tr>
                             <th>Código Acabado</th>
                             <th>Nome Semi-acabado</th>
-                            <th>Código Referência</th>
-                            <th>Nome Referência</th>
+                            <th>Código Ref 1</th>
+                            <th>Código Ref 2</th>
                             <th>Fórmula</th>
                             <th>Valor Original</th>
                             <th>Valor Ajustado</th>
@@ -150,79 +149,48 @@
                 </table>
             </div>
         </div>
-
-        <!-- Pesquisa de Produtos -->
-        <div class="card mt-5">
-            <div class="card-header">🔎 Pesquisa de Produtos (Visualizar)</div>
-            <div class="card-body">
-                <input type="text" id="filtroProdutos" class="form-control mb-3" placeholder="Digite código ou nome do produto...">
-                <table class="table table-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Descrição</th>
-                            <th>Valor Unitário</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaProdutosVisualizar"></tbody>
-                </table>
-            </div>
-        </div>
     </div>
 
-    <!-- JAVASCRIPT -->
     <script>
         let produtos = [];
         let regrasGlobais = [];
-    
+
         document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                console.log("🔄 Carregando produtos e regras...");
-                await carregarProdutos();
-                await listarRegras();
-                setupAutocomplete('produtoAcabadoInput', 'autocomplete-acabado');
-                setupAutocomplete('produtoReferenciaInput', 'autocomplete-referencia');
-    
-                document.getElementById('regraForm').addEventListener('submit', cadastrarRegra);
-                document.getElementById('filtroTabela').addEventListener('input', filtrarRegras);
-                document.getElementById('filtroProdutos').addEventListener('input', filtrarProdutos);
-    
-                console.log("✅ Produtos e regras carregados!");
-            } catch (err) {
-                alert('Erro ao inicializar: ' + err.message);
-            }
+            await carregarProdutos();
+            await listarRegras();
+            setupAutocomplete('produtoAcabadoInput', 'autocomplete-acabado');
+            setupAutocomplete('produtoReferenciaInput1', 'autocomplete-referencia1');
+            setupAutocomplete('produtoReferenciaInput2', 'autocomplete-referencia2');
+
+            document.getElementById('regraForm').addEventListener('submit', cadastrarRegra);
+            document.getElementById('filtroTabela').addEventListener('input', filtrarRegras);
         });
-    
-        // Carregar produtos com regras aplicadas
+
         async function carregarProdutos() {
-            const response = await fetch('http://localhost:3000/produtos/visualizar');
-            if (!response.ok) throw new Error(`Erro ${response.status}`);
-            produtos = await response.json();
-            renderizarProdutosLista(produtos);
+            const res = await fetch('https://ulhoa-0a02024d350a.herokuapp.com/produtos/visualizar');
+            produtos = await res.json();
         }
-    
-        // Listar regras cadastradas
+
         async function listarRegras() {
-            const response = await fetch('http://localhost:3000/produtos/regras');
-            regrasGlobais = await response.json();
+            const res = await fetch('https://ulhoa-0a02024d350a.herokuapp.com/produtos/regras');
+            regrasGlobais = await res.json();
             renderTabela(regrasGlobais);
         }
-    
-        // Autocomplete para inputs
+
         function setupAutocomplete(inputId, listId) {
             const input = document.getElementById(inputId);
             const list = document.getElementById(listId);
-    
+
             input.addEventListener('input', function() {
                 const query = this.value.toLowerCase();
                 list.innerHTML = '';
                 if (!query) return;
-    
+
                 const filtrados = produtos.filter(p =>
                     p.codigo.toLowerCase().includes(query) ||
                     (p.descricao && p.descricao.toLowerCase().includes(query))
                 ).slice(0, 10);
-    
+
                 filtrados.forEach(prod => {
                     const div = document.createElement('div');
                     div.classList.add('autocomplete-suggestion');
@@ -235,144 +203,91 @@
                 });
             });
         }
-    
-        // Cadastrar nova regra
+
         async function cadastrarRegra(e) {
             e.preventDefault();
             const codigoAcabado = document.getElementById('produtoAcabadoInput').value.split(' - ')[0];
-            const codigoReferencia = document.getElementById('produtoReferenciaInput').value.split(' - ')[0];
+            const codigoReferencia1 = document.getElementById('produtoReferenciaInput1').value.split(' - ')[0];
+            const codigoReferencia2 = document.getElementById('produtoReferenciaInput2').value.split(' - ')[0] || null;
             const formula = document.getElementById('formula').value;
-    
-            const payload = { codigoProdutoAcabado: codigoAcabado, codigoProdutoReferencia: codigoReferencia, formula };
-    
-            const response = await fetch('http://localhost:3000/produtos/regra', {
+
+            const payload = {
+                codigoProdutoAcabado: codigoAcabado,
+                codigoProdutoReferencia: codigoReferencia1,
+                codigoProdutoReferencia2: codigoReferencia2,
+                formula
+            };
+
+            const response = await fetch('https://ulhoa-0a02024d350a.herokuapp.com/produtos/regra', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-    
+
             if (response.ok) {
-                alert('Regra cadastrada!');
+                alert('Regra cadastrada com sucesso!');
                 document.getElementById('regraForm').reset();
                 await listarRegras();
-                await carregarProdutos();
             } else {
                 alert('Erro ao cadastrar regra.');
             }
         }
-    
-        // Renderizar tabela de regras
+
         function renderTabela(regras) {
             const tabela = document.getElementById('tabelaRegras');
             tabela.innerHTML = '';
-    
+
             regras.forEach(regra => {
-                const produtoRef = produtos.find(p => p.codigo.trim().toUpperCase() === regra.codigoProdutoReferencia.trim().toUpperCase());
-                const produtoAcabado = produtos.find(p => p.codigo.trim().toUpperCase() === regra.codigoProdutoAcabado.trim().toUpperCase());
-    
-                const nomeRef = produtoRef ? produtoRef.descricao : '🔴 Não encontrado';
-                const nomeAcabado = produtoAcabado ? produtoAcabado.descricao : '🔴 Não encontrado';
-    
-                const valor_base = produtoRef ? produtoRef.valor_unitario : null;
-                const valor_original = valor_base !== null ? `R$ ${valor_base.toFixed(2)}` : 'Ref. não encontrado';
-    
+                const ref1 = produtos.find(p => p.codigo.trim().toUpperCase() === regra.codigoProdutoReferencia.trim().toUpperCase());
+                const ref2 = regra.codigoProdutoReferencia2 ? produtos.find(p => p.codigo.trim().toUpperCase() === regra.codigoProdutoReferencia2.trim().toUpperCase()) : null;
+                const prodAcabado = produtos.find(p => p.codigo.trim().toUpperCase() === regra.codigoProdutoAcabado.trim().toUpperCase());
+
+                const valor_base = ref1 ? ref1.valor_unitario : null;
+                const valor_base2 = ref2 ? ref2.valor_unitario : 0;
+
                 let valorAjustado = 'Erro';
                 if (valor_base !== null) {
                     try {
-                        const calcular = new Function('valor_base', `return ${regra.formula}`);
-                        valorAjustado = `R$ ${calcular(valor_base).toFixed(2)}`;
+                        const calcular = new Function('valor_base', 'valor_base2', `return ${regra.formula}`);
+                        valorAjustado = `R$ ${calcular(valor_base, valor_base2).toFixed(2)}`;
                     } catch {
                         valorAjustado = 'Erro na fórmula';
                     }
                 }
-    
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="text" class="form-control" value="${regra.codigoProdutoAcabado}" data-field="codigoProdutoAcabado" data-id="${regra._id}"></td>
-                    <td>${nomeAcabado}</td>
-                    <td><input type="text" class="form-control" value="${regra.codigoProdutoReferencia}" data-field="codigoProdutoReferencia" data-id="${regra._id}"></td>
-                    <td>${nomeRef}</td>
-                    <td><input type="text" class="form-control" value="${regra.formula}" data-field="formula" data-id="${regra._id}"></td>
-                    <td>${valor_original}</td>
+                    <td>${regra.codigoProdutoAcabado}</td>
+                    <td>${prodAcabado?.descricao || '🔴 Não encontrado'}</td>
+                    <td>${regra.codigoProdutoReferencia}</td>
+                    <td>${regra.codigoProdutoReferencia2 || '-'}</td>
+                    <td>${regra.formula}</td>
+                    <td>${valor_base !== null ? `R$ ${valor_base.toFixed(2)}` : 'Ref. não encontrado'}</td>
                     <td>${valorAjustado}</td>
-                    <td>
-                        <button class="btn btn-success btn-sm mb-1" onclick="salvarEdicao('${regra._id}')">Salvar</button>
-                        <button class="btn btn-danger btn-sm" onclick="excluirRegra('${regra._id}')">Excluir</button>
-                    </td>
+                    <td><button class="btn btn-danger btn-sm" onclick="excluirRegra('${regra._id}')">Excluir</button></td>
                 `;
                 tabela.appendChild(tr);
             });
         }
-    
-        // Salvar edição da regra
-        async function salvarEdicao(id) {
-            const campos = document.querySelectorAll(`input[data-id='${id}']`);
-            const payload = {};
-            campos.forEach(campo => payload[campo.dataset.field] = campo.value);
-    
-            const response = await fetch(`http://localhost:3000/produtos/regra/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-    
-            if (response.ok) {
-                alert('Regra atualizada com sucesso!');
-                await listarRegras();
-                await carregarProdutos();
-            } else {
-                alert('Erro ao salvar a regra.');
-            }
-        }
-    
-        // Excluir regra
+
         async function excluirRegra(id) {
-            if (!confirm('Confirmar exclusão?')) return;
-            const response = await fetch(`http://localhost:3000/produtos/regra/${id}`, { method: 'DELETE' });
-            if (response.ok) {
-                await listarRegras();
-                await carregarProdutos();
-            } else {
-                alert('Erro ao excluir.');
-            }
+            if (!confirm('Deseja excluir esta regra?')) return;
+            const res = await fetch(`https://ulhoa-0a02024d350a.herokuapp.com/produtos/regra/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) await listarRegras();
         }
-    
-        // Filtrar regras
+
         function filtrarRegras() {
             const termo = this.value.toLowerCase();
             const filtradas = regrasGlobais.filter(r =>
                 r.codigoProdutoAcabado.toLowerCase().includes(termo) ||
                 r.codigoProdutoReferencia.toLowerCase().includes(termo) ||
+                (r.codigoProdutoReferencia2 && r.codigoProdutoReferencia2.toLowerCase().includes(termo)) ||
                 r.formula.toLowerCase().includes(termo)
             );
             renderTabela(filtradas);
         }
-    
-        // Renderizar lista de produtos
-        function renderizarProdutosLista(lista) {
-            const tabela = document.getElementById('tabelaProdutosVisualizar');
-            tabela.innerHTML = '';
-            lista.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${p.codigo}</td>
-                    <td>${p.descricao || '-'}</td>
-                    <td>R$ ${p.valor_unitario ? p.valor_unitario.toFixed(2) : '0,00'}</td>
-                `;
-                tabela.appendChild(tr);
-            });
-        }
-    
-        // Filtrar produtos
-        function filtrarProdutos() {
-            const termo = this.value.toLowerCase();
-            const filtrados = produtos.filter(p =>
-                p.codigo.toLowerCase().includes(termo) ||
-                (p.descricao && p.descricao.toLowerCase().includes(termo))
-            );
-            renderizarProdutosLista(filtrados);
-        }
     </script>
-    
 </body>
 </html>

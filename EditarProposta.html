@@ -226,7 +226,7 @@
   
   
     <header class="topbar">
-      <h2>Criar Proposta</h2>
+      <h2>Compor Produto</h2>
       <img src="logo-redonda.png" alt="Logo" class="logo-round" height="50">
     </header>
   <!-- Formulário -->
@@ -688,7 +688,7 @@ Vidro
 • Caso o orçamento inclua vidros e/ou calhas, o pagamento e faturamento deverão ser realizados pela contratante, sendo que a contratada irá apenas intermediar e realizar a produção do pedido.`;
   }
 </script>
-<!-- 
+
   <script>
               const nomeOrigemInput = document.getElementById("nomeOrigem");
               const codigoOrigemInput = document.getElementById("codigoOrigem");
@@ -753,14 +753,8 @@ Vidro
 
           </div>
 
- -->
- 
 
- <div id="grupo-controles" class="grupo-controles">
-      <h4>Exibir Grupos:</h4>
-      <div id="grupo-checkboxes"></div>
-    </div>
-   <!-- Container de busca centralizado -->
+    <!-- Container de busca centralizado -->
     <div class="search-container d-flex justify-content-center align-items-center gap-3 mb-4">
       <span class="material-icons-outlined">search</span>
       <input type="text" id="product-search" class="form-control" placeholder="Pesquisar produtos..." >
@@ -773,6 +767,12 @@ Vidro
         </ul>
       </div>
     </div>
+
+ <div id="grupo-controles" class="grupo-controles">
+      <h4>Exibir Grupos:</h4>
+      <div id="grupo-checkboxes"></div>
+    </div>
+
     <div class="table-container">
       <h3>Produtos Disponíveis</h3>
       <table id="search-results" class="table">
@@ -789,9 +789,18 @@ Vidro
         <tbody></tbody>
       </table>
     </div>
+<div class="search-container d-flex justify-content-center align-items-center gap-3 mb-4">
+  <span class="material-icons-outlined">search</span>
+  <input type="text" id="product-search" class="form-control" placeholder="Pesquisar produtos...">
 
-    
-
+  <!-- Botão com dropdown de classes -->
+  <div class="dropdown">
+    <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownClassesBtn" data-bs-toggle="dropdown" aria-expanded="false">
+     Produto Acabado
+    </button>
+    <ul class="dropdown-menu" id="dropdownClassesList" aria-labelledby="dropdownClassesBtn"><li><a class="dropdown-item" href="#">Espera</a></li><li><a class="dropdown-item" href="#">Fechamento Frontal</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Botão</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Calha Ferreira Ulhoa</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Calha Infinity</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Canaleta </a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Garra</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Montante H</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Proteção</a></li><li><a class="dropdown-item" href="#">Guarda Corpo - Spider</a></li><li><a class="dropdown-item" href="#">Instalação</a></li><li><a class="dropdown-item" href="#">Perfil U</a></li><li><a class="dropdown-item" href="#">Pergolado</a></li><li><a class="dropdown-item" href="#">Porta / Portão / Portinhola</a></li><li><a class="dropdown-item" href="#">Projetos Especiais</a></li><li><a class="dropdown-item" href="#">Revestimento</a></li><li><a class="dropdown-item" href="#">Vidro</a></li><li><a class="dropdown-item" href="#">Corrimão</a></li><li><a class="dropdown-item" href="#">Instalação</a></li></ul>
+  </div>
+</div>
     <div class="table-container">
       <h3>Produtos Selecionados</h3>
       <table id="included-products" class="table">
@@ -1032,6 +1041,118 @@ Vidro
     setTimeout(preencherPrazosPorArea, 5000);
 
   });
+
+  
+function carregarPropostaEPreencherTabela() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const propostaId = urlParams.get("id");
+
+  if (!propostaId) {
+    console.error("❌ Nenhum ID de proposta na URL.");
+    return;
+  }
+
+  fetch('https://ulhoa-0a02024d350a.herokuapp.com/api/propostas/')
+    .then(res => res.json())
+    .then(propostas => {
+      const proposta = propostas.find(p => p._id === propostaId);
+
+      if (!proposta) {
+        console.error("❌ Proposta não encontrada.");
+        return;
+      }
+
+      const campos = proposta.camposFormulario || {};
+
+      // Preenche todos os campos se existirem
+      const preencherCampo = (id, valor) => {
+        const el = document.getElementById(id);
+        if (el) el.value = valor ?? "";
+      };
+
+      // 🧩 Campos do formulário
+      preencherCampo("nome", campos.nomeCliente);
+      preencherCampo("cpfCnpj", campos.cpfCnpj);
+      preencherCampo("endereco", campos.endereco);
+      preencherCampo("idClienteOmie", campos.idClienteOmie);
+      preencherCampo("descricao", campos.descricao);
+      preencherCampo("numeroComplemento", campos.numeroComplemento);
+      preencherCampo("enderecoEntrega", campos.enderecoEntrega);
+      preencherCampo("telefone", campos.telefone);
+      preencherCampo("arquiteto", campos.arquiteto);
+      preencherCampo("codigo_arqeuiteto", campos.codigoArquiteto);
+      preencherCampo("dataEntrega", campos.dataEntrega);
+      preencherCampo("selectVendedor", campos.vendedor);
+      preencherCampo("tipoPagamento", campos.tipoPagamento);
+      preencherCampo("desconto", campos.desconto);
+
+      // 🧩 Informações do Orçamento
+      preencherCampo("numeroOrcamento", campos.numeroOrcamento);
+      preencherCampo("dataOrcamento", campos.dataOrcamento);
+      preencherCampo("origemCliente", campos.origemCliente);
+      preencherCampo("nomeOrigem", campos.nomeOrigem);
+      preencherCampo("codigoOrigem", campos.codigoOrigem);
+      preencherCampo("telefoneOrigem", campos.telefoneOrigem);
+      preencherCampo("emailOrigem", campos.emailOrigem);
+      preencherCampo("comissaoArquiteto", campos.comissaoArquiteto);
+
+      // 🧩 Endereço da Obra
+      preencherCampo("cep", campos.cep);
+      preencherCampo("rua", campos.rua);
+      preencherCampo("numero", campos.numero);
+      preencherCampo("complemento", campos.complemento);
+      preencherCampo("bairro", campos.bairro);
+      preencherCampo("cidade", campos.cidade);
+      preencherCampo("estado", campos.estado);
+
+      // 🧩 Equipe Interna
+      preencherCampo("vendedorResponsavel", campos.vendedorResponsavel);
+      preencherCampo("operadorInterno", campos.operadorInterno);
+
+      // 🧩 Produtos e Condições
+      preencherCampo("produtosValores", campos.produtosValores);
+      preencherCampo("prazosArea", campos.prazosArea);
+      preencherCampo("condicaoPagamento", campos.condicaoPagamento);
+      preencherCampo("condicoesGerais", campos.condicoesGerais);
+
+      // Produtos agrupados
+      const produtosTransformados = [];
+      window.groupPopupsData = {};
+
+      proposta.grupos.forEach(grupo => {
+        const grupoId = `grupo-${grupo.nome.replace(/\s+/g, '-').toLowerCase()}`;
+        groupPopupsData[grupoId] = {
+          ...(grupo.parametros || {}),
+          groupSaleFormula: grupo.parametros?.groupSaleFormula || ""
+        };
+
+        grupo.itens.forEach(item => {
+          const quantidade = item.quantidade || 1;
+          produtosTransformados.push({
+            name: item.nome_produto,
+            price: item.preco,
+            cost: quantidade > 0 ? item.custo / quantidade : 0,
+            quantity: quantidade,
+            priceFormula: item.formula_preco || "",
+            costFormula: "", // não usado
+            adjustedQuantityFormula: item.formula_quantidade || "",
+            class: grupo.nome,
+            _id: item._id,
+            index: produtosTransformados.length,
+            codigo_produto: item.codigo_omie || ""
+          });
+        });
+      });
+
+      window.includedProducts = produtosTransformados;
+      renderIncludedProducts();
+    })
+    .catch(err => {
+      console.error("❌ Erro ao carregar propostas:", err);
+    });
+}
+
+carregarPropostaEPreencherTabela() 
 </script>
 
 

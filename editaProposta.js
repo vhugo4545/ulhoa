@@ -3,13 +3,13 @@
 // 📁 API Handlers
 const API = {
   async carregar(endpoint) {
-    const response = await fetch(`http://localhost:3000/api/${endpoint}`);
+    const response = await fetch(`https://ulhoa-0a02024d350a.herokuapp.com/api/${endpoint}`);
     if (!response.ok) throw new Error(`Erro ao buscar ${endpoint}`);
     return await response.json();
   },
 
   async post(endpoint, body) {
-    const response = await fetch(`http://localhost:3000/api/${endpoint}`, {
+    const response = await fetch(`https://ulhoa-0a02024d350a.herokuapp.com/api/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
@@ -96,13 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAutoComplete({
     inputId: "nome",
     listaId: "sugestoes",
-    endpoint: "http://localhost:3000/clientes/visualizar"
+    endpoint: "https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar"
   });
 
   setupAutoComplete({
     inputId: "arquiteto",
     listaId: "sugestoes-arquiteto",
-    endpoint: "http://localhost:3000/clientes/visualizar"
+    endpoint: "https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar"
   });
 });
 
@@ -213,7 +213,7 @@ async function lancarContaPagar(tipo) {
       id_conta_corrente: 2490089205
     };
 
-    const resposta = await fetch("http://localhost:3000/contas_pagar", {
+    const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/contas_pagar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)

@@ -5,7 +5,7 @@ async function carregarClasses() {
   if (!dropdownList || !botaoDropdown) return;
 
   try {
-    const res = await fetch("http://localhost:3000/api/classes");
+    const res = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/classes");
 const classes = await res.json();
     dropdownList.innerHTML = "";
     if (classes.length === 0) {
@@ -41,7 +41,7 @@ const products = [];
 
 async function carregarProdutosDoServidor() {
   try {
-    const response = await fetch("http://localhost:3000/produtos/visualizar");
+    const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/produtos/visualizar");
     const dados = await response.json();
 
     if (!Array.isArray(dados)) throw new Error("Resposta inesperada da API.");
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectVendedor = document.getElementById("selectVendedor");
 
   try {
-    const response = await fetch("http://localhost:3000/api/vendedores");
+    const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/vendedores");
     const vendedores = await response.json();
 
     vendedores.forEach(vendedor => {
@@ -99,13 +99,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAutoComplete({
     inputId: "nome",
     listaId: "sugestoes",
-    endpoint: "http://localhost:3000/clientes/visualizar"
+    endpoint: "https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar"
   });
 
   setupAutoComplete({
     inputId: "arquiteto",
     listaId: "sugestoes-arquiteto",
-    endpoint: "http://localhost:3000/clientes/visualizar"
+    endpoint: "https://ulhoa-0a02024d350a.herokuapp.com/clientes/visualizar"
   });
 });
 
@@ -1302,7 +1302,7 @@ async function carregarGruposCheckboxes() {
     const container = document.getElementById("grupo-checkboxes");
   
     try {
-      const response = await fetch("http://localhost:3000/api/classes");
+      const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/classes");
       if (!response.ok) throw new Error("Erro ao buscar classes");
   
       const classes = await response.json();

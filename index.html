@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autenticação e Cadastro</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('https://www.mikrostamp.com.br/img/palavras-chave/thumbs/corte-ferro.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: all 0.4s ease;
+      position: relative;
+      backdrop-filter: blur(3px);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #444;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .toggle {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #007bff;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .toggle:hover {
+      color: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+    .response {
+      margin-top: 12px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loginForm">
+      <h2>Login</h2>
+      <div class="form-group">
+        <label for="loginUsuario">Usuário</label>
+        <input type="text" id="loginUsuario" />
+      </div>
+      <div class="form-group">
+        <label for="loginSenha">Senha</label>
+        <input type="password" id="loginSenha" />
+      </div>
+      <button onclick="login()">Entrar</button>
+      <div class="toggle" onclick="toggleForm()">Não tem conta? Cadastre-se</div>
+      <div id="loginResposta" class="response"></div>
+    </div>
+
+    <div id="cadastroForm" class="hidden">
+      <h2>Cadastro</h2>
+      <div class="form-group">
+        <label for="cadastroUsuario">Novo Usuário</label>
+        <input type="text" id="cadastroUsuario" />
+      </div>
+      <div class="form-group">
+        <label for="cadastroSenha">Senha</label>
+        <input type="password" id="cadastroSenha" />
+      </div>
+      <hr />
+      <div class="form-group">
+        <label for="adminUsuario">Usuário do Admin</label>
+        <input type="text" id="adminUsuario" />
+      </div>
+      <div class="form-group">
+        <label for="adminSenha">Senha do Admin</label>
+        <input type="password" id="adminSenha" />
+      </div>
+      <button onclick="cadastrar()">Cadastrar</button>
+      <div class="toggle" onclick="toggleForm()">Já tem conta? Faça login</div>
+      <div id="cadastroResposta" class="response"></div>
+    </div>
+  </div>
+
+  <script>
+    function toggleForm() {
+      document.getElementById("loginForm").classList.toggle("hidden");
+      document.getElementById("cadastroForm").classList.toggle("hidden");
+      document.getElementById("loginResposta").textContent = "";
+      document.getElementById("cadastroResposta").textContent = "";
+    }
+
+    async function login() {
+      const usuario = document.getElementById("loginUsuario").value;
+      const senha = document.getElementById("loginSenha").value;
+
+      const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/autenticacao/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, senha })
+      });
+
+      const dados = await resposta.json();
+      const div = document.getElementById("loginResposta");
+
+      if (dados.erro) {
+        div.textContent = dados.erro;
+        div.className = "response error";
+      } else {
+        div.textContent = `Bem-vindo ${dados.nome} (${dados.tipo})`;
+        div.className = "response success";
+        setTimeout(() => {
+          window.location.href = "listagem.html";
+        }, 1500);
+      }
+    }
+
+    async function cadastrar() {
+      const usuario = document.getElementById("cadastroUsuario").value;
+      const senha = document.getElementById("cadastroSenha").value;
+      const adminUsuario = document.getElementById("adminUsuario").value;
+      const adminSenha = document.getElementById("adminSenha").value;
+
+      const resposta = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/autenticacao/cadastrar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, senha, adminUsuario, adminSenha })
+      });
+
+      const dados = await resposta.json();
+      const div = document.getElementById("cadastroResposta");
+
+      if (dados.erro) {
+        div.textContent = dados.erro;
+        div.className = "response error";
+      } else {
+        div.textContent = `Usuário ${dados.nome} (${dados.tipo}) cadastrado com sucesso!`;
+        div.className = "response success";
+      }
+    }
+  </script>
+</body>
+</html>

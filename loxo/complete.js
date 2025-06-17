@@ -6,7 +6,7 @@ async function carregarPropostaPelaURL() {
     }
 
     try {
-        const res = await fetch(`http://localhost:3000/api/propostas/${id}`);
+        const res = await fetch(`https://ulhoa-0a02024d350a.herokuapp.com/api/propostas/${id}`);
         if (!res.ok) throw new Error("Proposta não encontrada.");
 
         const proposta = await res.json();

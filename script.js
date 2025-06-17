@@ -6,21 +6,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     const searchInput = document.getElementById("search");
     const filterSeller = document.getElementById("filter-seller");
     const filterStatus = document.getElementById("filter-status");
+    const loadingDiv = document.getElementById("loading");
+    const table = document.getElementById("data-table");
 
     let data = [];
     let currentPage = 1;
     const rowsPerPage = 10;
 
     try {
-        // ✅ Força busca de dados atualizados (sem cache)
-        const res = await fetch("http://localhost:3000/api/propostas", {
+        // Exibe mensagem de carregamento
+        loadingDiv.style.display = "block";
+        table.style.display = "none";
+
+        const res = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/propostas", {
             cache: "no-store"
         });
 
         const propostas = await res.json();
         const sellers = new Set();
 
-        // ✅ Filtra, mapeia e inverte os dados para exibir os mais recentes primeiro
         data = propostas
             .filter(p => p.tipoProposta === "editavel")
             .map(p => {
@@ -28,23 +32,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const grupos = p.grupos || [];
 
                 const total = grupos.reduce((soma, grupo) => {
-                    return soma + grupo.itens.reduce((subTotal, item) => {
+                    return soma + grupo.itens.reduce((subtotal, item) => {
                         const preco = parseFloat(item.preco) || 0;
                         const qtd = parseFloat(item.quantidade) || 1;
-                        return subTotal + (preco * qtd);
+                        return subtotal + (preco * qtd);
                     }, 0);
                 }, 0);
 
-                const nome = campos.nomeCliente || "Cliente sem nome";
-                const vendedor = campos.vendedor || "Indefinido";
-                const status = p.status || "Sem status";
+                const clienteObj = (campos.clientes && campos.clientes[0]) || {};
+                const nomeCliente = clienteObj.nome_razao_social || "Cliente sem nome";
+                const vendedor = campos.vendedorResponsavel || "Indefinido";
+                const status = p.statusOrcamento || "Sem status";
                 const dataCriacao = new Date(p.createdAt).toLocaleDateString("pt-BR");
 
                 sellers.add(vendedor);
 
                 return {
                     _id: p._id,
-                    cliente: nome,
+                    cliente: nomeCliente,
                     vendedor,
                     status,
                     date: dataCriacao,
@@ -52,14 +57,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     createdAt: new Date(p.createdAt)
                 };
             })
-            .reverse(); // ✅ Últimos adicionados primeiro
+            .reverse();
 
-        // Atualiza IDs sequenciais
         data.forEach((item, index) => {
             item.id = index + 1;
         });
 
-        // Preenche filtro de vendedores
+        // Preenche opções do filtro de vendedor
         sellers.forEach(vendedor => {
             const option = document.createElement("option");
             option.value = vendedor;
@@ -70,6 +74,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderTable();
     } catch (err) {
         console.error("Erro ao buscar propostas:", err);
+        loadingDiv.innerHTML = "❌ Erro ao carregar propostas.";
+        return;
+    } finally {
+        loadingDiv.style.display = "none";
+        table.style.display = "table";
     }
 
     function renderTable(filteredData = data) {
@@ -86,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td>${item.value}</td>
                 <td>${item.vendedor}</td>
                 <td>${item.cliente}</td>
-                <td><span class="status ${item.status.toLowerCase()}">${item.status}</span></td>
+                <td><span class="status ${item.status.toLowerCase().replace(/\s/g, "-")}">${item.status}</span></td>
                 <td class="actions">
                     <button class="edit-btn" data-id="${item._id}">
                         <span class="material-icons-outlined">edit</span>
@@ -122,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             button.addEventListener("click", (event) => {
                 const itemId = event.currentTarget.getAttribute("data-id");
                 if (itemId) {
-                    window.location.href = `editaProposta.html?id=${itemId}`;
+                    window.location.href = `criarPropostaV2.html?id=${itemId}`;
                 } else {
                     alert("❌ ID não encontrado.");
                 }
@@ -164,7 +173,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderTable(filteredData);
     }
 
-    // Eventos de filtro e paginação
     searchInput.addEventListener("input", filterTable);
     filterSeller.addEventListener("change", filterTable);
     filterStatus.addEventListener("change", filterTable);
@@ -178,7 +186,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// 🔁 Função auxiliar para navegação com parâmetros
+// Função para navegação com parâmetros
 function irParaPagina(pagina, params = {}) {
     const query = new URLSearchParams(params).toString();
     const url = query ? `${pagina}?${query}` : pagina;

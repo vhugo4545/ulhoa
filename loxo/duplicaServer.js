@@ -1,7 +1,7 @@
 
   async function carregarVendedores() {
     try {
-      const response = await fetch("http://localhost:3000/api/vendedores");
+      const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/vendedores");
       if (!response.ok) throw new Error("Erro ao buscar vendedores");
 
       const vendedores = await response.json();
@@ -38,7 +38,7 @@
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/classes");
+      const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/classes");
 
       if (!response.ok) {
         throw new Error("Erro ao buscar classes de produtos");
@@ -145,7 +145,7 @@
 
     // 🌐 4. Enviar para a API
     try {
-        const response = await fetch("http://localhost:3000/api/propostas", {
+        const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/propostas", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -179,7 +179,7 @@
 
 async function carregarPropostaModelo() {
     try {
-        const response = await fetch("http://localhost:3000/api/propostas?tipo=modelo");
+        const response = await fetch("https://ulhoa-0a02024d350a.herokuapp.com/api/propostas?tipo=modelo");
         const propostas = await response.json();
 
         if (!response.ok || !Array.isArray(propostas) || propostas.length === 0) {

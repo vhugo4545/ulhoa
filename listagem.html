@@ -1,87 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listagem de Vendas</title>
-    <link rel="stylesheet" href="style2.css">
-    <script src="script.js" defer></script>
-    <!-- Fonte Poppins e Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listagem de Propostas</title>
+  <link rel="stylesheet" href="style2.css" />
+  <script src="script.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
 </head>
 <body>
-    <!-- Menu lateral -->
-    <aside class="sidebar">
-      
-        <ul>
-            <li><a href="agrupa.html"><span class="material-icons-outlined">home</span> Criar Base</a></li>
-            <li><li><a href="../pages/listagem.html"><span class="material-icons-outlined">home</span> Início</a></li></li>
-            <li><a href="#"><span class="material-icons-outlined">dashboard</span> Dashboard</a></li>
-            <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
-            <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
-            <div class="sidebar-footer">
-                <button id="save-proposal" class="sidebar-button" onclick="irParaPagina('criarProposta.html')">
-                    <span class="material-icons-outlined">save</span> Criar Proposta
-                </button>
-                
-               
-            </div>
-        </ul>
-    </aside>
+  <!-- Menu lateral -->
+  <aside class="sidebar">
+    <ul>
+      <li><a href="modelo.html"><span class="material-icons-outlined">home</span> Criar Base</a></li>
+      <li><a href="../pages/listagem.html"><span class="material-icons-outlined">list</span> Início</a></li>
+      <li><a href="#"><span class="material-icons-outlined">dashboard</span> Dashboard</a></li>
+      <li><a href="#"><span class="material-icons-outlined">settings</span> Configurações</a></li>
+      <li><a href="#"><span class="material-icons-outlined">logout</span> Logout</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button id="save-proposal" class="sidebar-button" onclick="irParaPagina('criarProposta.html')">
+        <span class="material-icons-outlined">save</span> Criar Proposta
+      </button>
+    </div>
+  </aside>
 
-    <!-- Conteúdo principal -->
-    <main class="content">
-        <!-- Barra superior -->
-        <header class="topbar">
-            <div class="title-search">
-                <h2>Listagem de Propostas</h2>
-                <input type="text" id="search" placeholder="Pesquisar...">
-                
-                <!-- Seleção de Vendedor -->
-                <select id="filter-seller">
-                    <option value="">Todos os Vendedores</option>
-                </select>
+  <!-- Conteúdo principal -->
+  <main class="content">
+    <!-- Barra superior -->
+    <header class="topbar">
+      <div class="title-search">
+        <h2>Listagem de Propostas</h2>
+        <input type="text" id="search" placeholder="Pesquisar..." />
 
-                <!-- Seleção de Status -->
-                <select id="filter-status">
-                    <option value="">Todos os Status</option>
-                    <option value="Aprovado">Aprovado</option>
-                    <option value="Pendente">Pendente</option>
-                    <option value="Cancelado">Cancelado</option>
-                </select>
-            </div>
-            <img src="logo-redonda.png" alt="Logo" class="logo-round"> <!-- Logo no canto direito -->
-        </header>
+        <!-- Seleção de Vendedor -->
+        <select id="filter-seller">
+          <option value="">Todos os Vendedores</option>
+        </select>
 
-        <!-- Tabela com rolagem -->
-        <div class="table-wrapper">
-            <div class="table-container">
-                <table id="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Data</th>
-                            <th>Valor</th>
-                            <th>Vendedor</th>
-                            <th>Clientes</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dados serão inseridos via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
+        <!-- Seleção de Status -->
+        <select id="filter-status">
+          <option value="">Todos os Status</option>
+          <option value="Aprovado">Aprovado</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </div>
+      <img src="logo-redonda.png" alt="Logo" class="logo-round" />
+    </header>
 
-            <!-- Paginação dentro do espaço fixo -->
-            <div class="pagination">
-                <button id="prev-page" disabled>❮ Anterior</button>
-                <span id="page-info">Página 1</span>
-                <button id="next-page">Próxima ❯</button>
-            </div>
-        </div>
-    </main>
+    <!-- Indicador de carregamento -->
+    <div id="loading" style="text-align:center; padding: 20px;">🔄 Carregando propostas...</div>
+
+    <!-- Tabela com rolagem -->
+    <div class="table-wrapper">
+      <div class="table-container">
+        <table id="data-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Valor</th>
+              <th>Vendedor</th>
+              <th>Cliente</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dados serão inseridos via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginação -->
+      <div class="pagination">
+        <button id="prev-page" disabled>❮ Anterior</button>
+        <span id="page-info">Página 1</span>
+        <button id="next-page">Próxima ❯</button>
+      </div>
+    </div>
+  </main>
 </body>
 </html>
